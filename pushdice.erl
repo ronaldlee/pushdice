@@ -96,7 +96,8 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type]) ->
      UserSessionCacheKey = string:concat("pd_session_",SessionId),
      erlmc:set(UserSessionCacheKey,term_to_binary(UserData),60),
 
-     {html, SessionId};
+     SessionJson= mochijson2:encode({struct, [{session,list_to_binary(SessionId)}]}),
+     {html, SessionJson};
 out(Arg, ["game", "start", "uid", Uid, "friend_uid", Friend_uid]) -> 
      io:format("mysqlllll ~n",[]),
      crypto:start(),
