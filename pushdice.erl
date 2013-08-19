@@ -73,8 +73,9 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
               NewUserId = "unknown"
          end;
        1 ->
+         io:format("mysqlllll found user~n",[]),
          [{game_user,NewUserId,FoundUsername,FoundId,FoundType,{datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
-             ConsecDaysPlayed,IsUnlocked} | _ ] = Recs,
+             ConsecDaysPlayed,IsUnlocked,Coins} | _ ] = Recs,
 
          LastPlayTime = calendar:datetime_to_gregorian_seconds({{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}),
 
@@ -140,45 +141,8 @@ out(Arg, ["user", "session", Session]) ->
              {html, UserInfoJsonStr};
           true ->
              {html, "{'code':'-1', 'msg':'Fail to get user data from session.'}"}
-      end;
-out(Arg, [Fbusername]) -> 
-     inets:start(),
-     {ok, {{Version, 200, ReasonPhrase}, Headers, Body}} = httpc:request("http://www.erlang.org"),
-     {html, Body};
-out(Arg, ["game", "start", "uid", Uid, "friend_uid", Friend_uid]) -> 
-     io:format("mysqlllll ~n",[]),
-     crypto:start(),
-     io:format("mysqlllll 1 ~n",[]),
-     application:start(emysql),
-     io:format("mysqlllll 2 ~n",[]),
-
-%%      emysql:add_pool(pushdice_pool, 1,
-%%          "root", "jackassdummy", "localhost", 3306,
-%%          "pushdice", utf8),
-
-     Status = try (emysql:add_pool(pushdice_pool, 1, "root", "jackassdummy", "localhost", 3306, "pushdice", utf8)) of 
-         Val -> 0
-     catch
-         %% _:_ -> -1
-%%          Throw:_-> 
-%%              io:format("throw error boo ~w~n",[Throw]),
-%%              {throw,error}
-         exit:pool_already_exists -> 
-             io:format("throw error already exist ~n",[]),
-             1
-     end,
-
-     %% execute when Status is 0 or 1
-     %% io:format("mysqlllll 3: status: ~w~n",[Status]),
-     io:format("mysqlllll 3: status: ~n",[]),
-     emysql:execute(pushdice_pool,
-         <<"INSERT INTO user (name,coins) values ('ronald',11)">>),
-     io:format("mysqlllll 4 ~n",[]),
-
-     Result = emysql:execute(pushdice_pool,
-         <<"select * from user">>),
-     io:format("mysqlllll 5 ~n",[]),
-
-     io:format("~n~p~n", [Result]),
-     {html, Friend_uid}.
-
+      end.
+%% out(Arg, [Fbusername]) -> 
+%%     inets:start(),
+%%     {ok, {{Version, 200, ReasonPhrase}, Headers, Body}} = httpc:request("http://www.erlang.org"),
+%%     {html, Body}.
