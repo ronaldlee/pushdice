@@ -2,10 +2,11 @@
 -include("/home/ubuntu/yaws/include/yaws_api.hrl").
 -compile(export_all).
 
--record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked}).
+-record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
 
 -define(ONE_DAY_SECS,86400).
 -define(TWO_DAY_SECS,172800).
+-define(USER_SESSION_EXPIRATION,86400).
 
 %% out(Arg) ->
 %%     Uri = yaws_api:request_url(Arg),
@@ -51,7 +52,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
              1
      end,
 
-     SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked from user WHERE name='~s' and plat_id='~s' and plat_type='~s'",[Username,Id,Type]),
+     SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE name='~s' and plat_id='~s' and plat_type='~s'",[Username,Id,Type]),
      SelectResult = emysql:execute(pushdice_pool, SelectSQL),
      Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
      SelectLength = length(Recs),
@@ -86,7 +87,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
              UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=consecutive_days_played+1 WHERE user_id='~w'",[NewUserId]),
              UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL);
              true ->
-             io:format("not consec play ~n",[]),
+             %not consec day play, reset to 1
              UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=1 WHERE user_id='~w'",[NewUserId]),
              UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL)
          end,
@@ -110,16 +111,36 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      UserData = {{user_id,NewUserId},{name,Username},{plat_id,Id},{plat_type,Type}},
      io:format("user data ~w~n",[UserData]),
      UserSessionCacheKey = string:concat("pd_session_",SessionId),
-     erlmc:set(UserSessionCacheKey,term_to_binary(UserData),60),
+     erlmc:set(UserSessionCacheKey,term_to_binary(UserData),?USER_SESSION_EXPIRATION),
 
      SessionJson= mochijson2:encode({struct, [{session,list_to_binary(SessionId)}]}),
      {html, SessionJson};
+
 out(Arg, ["login", "username", Username, "id", Id, "type", Type]) -> 
      out(Arg,["login", "username", Username, "id", Id, "type", Type, "accesstoken", ""]);
+
 out(Arg, ["user", "session", Session]) -> 
      %get user info from session
- 
-     {html, 'ok'};
+     FetchUserSessionCacheKey = string:concat("pd_session_",Session),
+     FetchUserBinData = erlmc:get(FetchUserSessionCacheKey),
+     FetchUserData = binary_to_term(FetchUserBinData),
+     {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType}} = FetchUserData,
+
+     %use FetchUserId to fetch more user data from db
+     FetchUserSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~w'",[FetchUserId]),
+     io:format("fetch user sql: recs: ~s~n",[FetchUserSQL]),
+     FetchUserResult = emysql:execute(pushdice_pool, FetchUserSQL),
+     Recs = emysql_util:as_record(FetchUserResult, game_user, record_info(fields, game_user)),
+     io:format("fetch user by session: recs: ~w~n",[Recs]),
+
+     case Recs of 
+         [{game_user,UserId,UserName,UserPlatId,UserPlatType,{datetime,{{UserLastPlayYr,UserLastPlayM,UserLastPlayDay},{UserLastPlayHr,UserLastPlayMin,UserLastPlaySec}}},UserConsecDaysPlayed,UserIsUnlocked,UserCoins}] ->
+             UserInfoJson =  [{user_id,UserId},{name,UserName},{plat_id,UserPlatId},{plat_type,UserPlatType},{coins,UserCoins},{unlock,UserIsUnlocked}],
+             UserInfoJsonStr = mochijson2:encode({struct, UserInfoJson}),
+             {html, UserInfoJsonStr};
+          true ->
+             {html, "{'code':'-1', 'msg':'Fail to get user data from session.'}"}
+      end;
 out(Arg, [Fbusername]) -> 
      inets:start(),
      {ok, {{Version, 200, ReasonPhrase}, Headers, Body}} = httpc:request("http://www.erlang.org"),
