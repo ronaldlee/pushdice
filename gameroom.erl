@@ -135,11 +135,10 @@ out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) ->
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
         {"p1_calldice", SortedDiceComb} ->
-            %ConvertFun = fun([X]) -> { io:format("fun ~w",[X]),  io_lib:format("~s",[X])} end,
-            %ConvertFun = fun([X]) -> { io:format("fun ~w ",[X]), io:format("boo ~s ",[list_to_binary([X])]), io_lib:format("~s ",[list_to_binary([X])]) } end,
-            ConvertFun = fun([X]) -> { io_lib:format("~s ",[list_to_binary([X])]) } end,
+%io:format("SortedDiceComb: ~w~n",[SortedDiceComb]),
+            ConvertFun = fun([X]) -> list_to_binary([X]) end,
             CallDiceConverted = lists:map(ConvertFun, SortedDiceComb),
-io:format("after: ~w~n",[CallDiceConverted]),
+%io:format("after: ~w~n",[CallDiceConverted]),
             P1DiceResultJson = {dice_result,CallDiceConverted},
             P1DiceResultJsonStr = mochijson2:encode({struct, [P1DiceResultJson]}),
             {html, P1DiceResultJsonStr}
