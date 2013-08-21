@@ -13,9 +13,11 @@ start(Player1_uid,Player2_uid) ->
 
 init_gameroom(Player1_uid,Player2_uid) ->
     receive
+        {check, FromPid} -> 
+            FromPid ! "init";
         {join, Player2_uid} ->
-        io:format("join. ~s~n",[Player2_uid]),
-        wait_for_p1_rolldice();
+            io:format("join. ~s~n",[Player2_uid]),
+            wait_for_p1_rolldice();
         {_ , Player2_uid} -> 
             io:format("player 2 can only join. ~n",[]),
             {error,'player 2 can only join.'}
@@ -23,43 +25,48 @@ init_gameroom(Player1_uid,Player2_uid) ->
 
 wait_for_p1_rolldice() ->
     receive
+        {check, FromPid} -> 
+            FromPid ! "p1_roll";
         {p1_roll,Player1_uid,FromPid} ->
         %check if p1 has enough to make the blind first
+            io:format("p1 roll dice ~n",[]),
+            random:seed(now()),
+            Dice1_value = random:uniform(6),
+            Dice2_value = random:uniform(6),
+            Dice3_value = random:uniform(6),
+            Dice4_value = random:uniform(6),
+            Dice5_value = random:uniform(6),
 
-        io:format("p1 roll dice ~n",[]),
-        random:seed(now()),
-        Dice1_value = random:uniform(6),
-        Dice2_value = random:uniform(6),
-        Dice3_value = random:uniform(6),
-        Dice4_value = random:uniform(6),
-        Dice5_value = random:uniform(6),
+            %sort the dice from low to high
+            [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
 
-        %sort the dice from low to high
-        [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
-
-        io:format("p1 roll dice: ~w,~w,~w,~w,~w ~n",[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]),
-        FromPid ! {dice_result,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value},
-        wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
+            io:format("p1 roll dice: ~w,~w,~w,~w,~w ~n",[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]),
+            FromPid ! {dice_result,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value},
+            wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
     end.
 
 wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
     receive
+        {check, FromPid} -> 
+            FromPid ! "p1_makecall";
         {p1_call,Player1_uid,FromPid,P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5} ->
-        io:format("make call aaa~n",[]),
-        Player1_uid,
-        FromPid,
-        %ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
-        %DiceCombConverted = lists:map(ConvertFun, DiceComb),
-        %SortedDiceComb = lists:sort(DiceCombConverted),
+            io:format("make call aaa~n",[]),
+            Player1_uid,
+            FromPid,
+            %ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
+            %DiceCombConverted = lists:map(ConvertFun, DiceComb),
+            %SortedDiceComb = lists:sort(DiceCombConverted),
 
-        SortedDiceComb = lists:sort([P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5]),
-        %io:format("make call p1 dice: dicecomb: ~w, actual: ~w,~w,~w,~w,~w ~n",[SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]),
-        wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
+            SortedDiceComb = lists:sort([P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5]),
+            %io:format("make call p1 dice: dicecomb: ~w, actual: ~w,~w,~w,~w,~w ~n",[SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]),
+            wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
     end.
 
 wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
     io:format("p2 find call~n",[]),
     receive
+        {check, FromPid} -> 
+            FromPid ! "p2_findcall";
         {p2_findcall,Player2_uid,FromPid} ->
             %return p1 actual dice combination
             FromPid ! {"p1_calldice", SortedDiceComb},
@@ -69,6 +76,8 @@ wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice
 
 wait_for_p2_trust_or_not(DiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
     receive
+        {check, FromPid} -> 
+            FromPid ! "p2_trust_not";
         {trust,Player2_uid,FromPid} ->
             %player 2 look at dice
             true;
@@ -127,6 +136,16 @@ out(Arg, ["makecall", "room_pid", Pid, "p1_uid", Player1_uid,"call",D1,D2,D3,D4,
     [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
     player1_makecall(list_to_pid(Pid),Player1_uid,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value),
     Response = [ {code,0}  ],
+    Output = mochijson2:encode({struct, Response}),
+    {html, Output};
+
+out(Arg, ["check", "room_pid", Pid]) -> 
+    io:format("check room. ~n",[]),
+    list_to_pid(Pid) ! {'check',self()},
+    RoomState = receive
+        State -> State
+    end,
+    Response = [ {code,0}, {room_state,list_to_binary(RoomState)} ],
     Output = mochijson2:encode({struct, Response}),
     {html, Output};
 
