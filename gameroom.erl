@@ -58,6 +58,12 @@ wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_
             %SortedDiceComb = lists:sort(DiceCombConverted),
 
             SortedDiceComb = lists:sort([P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5]),
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Need to check if the call is valid!!!  %%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
             %io:format("make call p1 dice: dicecomb: ~w, actual: ~w,~w,~w,~w,~w ~n",[SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]),
             wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
     end.
@@ -74,13 +80,21 @@ wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice
     end.
 
 
-wait_for_p2_trust_or_not(DiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
+wait_for_p2_trust_or_not(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
     receive
         {check, FromPid} -> 
             FromPid ! "p2_trust_not";
         {trust,Player2_uid,FromPid} ->
             %player 2 look at dice
-            true;
+            %check if wrong or not
+            IsCorrect = case SortedDiceComb of 
+                {SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value} -> true;
+                {SDice1_value,SDice2_value,SDice3_value,SDice4_value} -> true;
+                {SDice1_value,SDice2_value,SDice3_value} -> true;
+                {SDice1_value,SDice2_value} -> true;
+                _ -> false
+            end
+            IsCorrect;
         {not_trust,Player2_uid,FromPid} ->
             %if p1 actual result not match the dice comb call by p1, p2 win. else p2 lose
             true
@@ -158,7 +172,7 @@ out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) ->
             ConvertFun = fun([X]) -> list_to_binary([X]) end,
             CallDiceConverted = lists:map(ConvertFun, SortedDiceComb),
 %io:format("after: ~w~n",[CallDiceConverted]),
-            P1DiceResultJson = {dice_result,CallDiceConverted},
+            P1DiceResultJson = {p1_call,CallDiceConverted},
             P1DiceResultJsonStr = mochijson2:encode({struct, [P1DiceResultJson]}),
             {html, P1DiceResultJsonStr}
     end.
