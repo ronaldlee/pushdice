@@ -97,7 +97,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      end,
      io:format("user id to use ~w~n",[NewUserId]),
 
-     %MemcachedStatus = erlmc:start(),
+     MemcachedStatus = erlmc:start(),
      %io:format("memcached: ~w~n",[MemcachedStatus]),
 
      %ReturnUserData = erlmc:get(UserCacheKey),
