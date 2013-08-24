@@ -27,7 +27,7 @@ wait_for_p1_rolldice() ->
     receive
         {check, FromPid} -> 
             FromPid ! "p1_roll";
-        {p1_roll,Player1_uid,FromPid} ->
+        {p1_roll,Player1_uid,buy_in, BuyIn, FromPid} ->
         %check if p1 has enough to make the blind first
             io:format("p1 roll dice ~n",[]),
             random:seed(now()),
@@ -42,21 +42,21 @@ wait_for_p1_rolldice() ->
 
             io:format("p1 roll dice: ~w,~w,~w,~w,~w ~n",[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]),
             FromPid ! {dice_result,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value},
-            wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
+            wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,BuyIn)
     end.
 
-wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
+wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn) ->
     receive
         {check, FromPid} -> 
             FromPid ! "p1_makecall";
-        {p1_call,Player1_uid,FromPid,P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5} ->
+        {p1_call,Player1_uid,FromPid,P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5,p1_raise,P1Raise} ->
             io:format("make call aaa~n",[]),
             Player1_uid,
             %ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
             %DiceCombConverted = lists:map(ConvertFun, DiceComb),
-            %SortedDiceComb = lists:sort(DiceCombConverted),
+            %SortedCallDice = lists:sort(DiceCombConverted),
 
-            SortedDiceComb = lists:sort([P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5]),
+            SortedCallDice = lists:sort([P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5]),
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% Need to check if the call is valid!!!  %%%%%%%%%%%%%%%%
@@ -122,58 +122,68 @@ io:format("make call ~w~n",[{P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5}]),
             case IsValid of 
                 true ->
                     FromPid ! valid_call,
-                    wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value);
+                    wait_for_p2_findcall(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise);
                     %wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value);
                 false ->
                     %loop back
                     FromPid ! invalid_call,
-                    wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
+                    wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn)
             end;
         _ -> 
             io:format("whatt!! ~n",[])
             
     end.
 
-wait_for_p2_findcall(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
+wait_for_p2_findcall(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise) ->
     io:format("p2 find call~n",[]),
     receive
         {check, FromPid} -> 
             FromPid ! "p2_findcall";
         {p2_findcall,Player2_uid,FromPid} ->
             %return p1 actual dice combination
-            FromPid ! {"p1_calldice", SortedDiceComb},
-            wait_for_p2_trust_or_not(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value)
+            FromPid ! {"p1_calldice", SortedCallDice, "p1_buyin",P1BuyIn, "p1_raise",P1Raise},
+            wait_for_p2_trust_or_not(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise)
     end.
 
 
-wait_for_p2_trust_or_not(SortedDiceComb,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value) ->
+wait_for_p2_trust_or_not(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise) ->
+io:format("p2 trust or not! ~n"),
     receive
         {check, FromPid} -> 
             FromPid ! "p2_trust_not";
-        {trust,Player2_uid,FromPid} ->
-            %player 2 look at dice
-            %check if wrong or not
-            IsCorrect = case SortedDiceComb of 
-                {SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value} -> true;
-                {SDice1_value,SDice2_value,SDice3_value,SDice4_value} -> true;
-                {SDice1_value,SDice2_value,SDice3_value} -> true;
-                {SDice1_value,SDice2_value} -> true;
-                _ -> false
-            end,
-            IsCorrect;
+        {trust,Player2_uid,FromPid,bet,P2Bet} ->
+io:format("trust! ~w, ~w ~n",[P1BuyIn,P1Raise]),
+            %check if p2 bet matches p1's, if not return error
+            P1TotalBet = P1BuyIn + P1Raise,
+io:format("trust 2! ~w ~n",[P1TotalBet]),
+            if 
+                (P2Bet < P1TotalBet) ->
+                    io:format("p2 bad bet! ~n"),
+                    FromPid ! "p2_bad_bet";
+                true ->
+                    io:format("p2 valid bet! ~n"),
+                    %else return p1's actual dice
+                    FromPid ! {p1_dice,SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise},
+                    wait_for_p2_pick_dice_to_roll(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise,P2Bet)
+            end;
         {not_trust,Player2_uid,FromPid} ->
             %if p1 actual result not match the dice comb call by p1, p2 win. else p2 lose
             true
     end.
 
+
+wait_for_p2_pick_dice_to_roll(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise,P2Bet) ->
+true.
+
+
 join_gameroom(Pid,Player2_uid) ->
     Pid ! {join, Player2_uid}.
 
-player1_rolldice(Pid,Player1_uid) -> 
-    Pid ! {p1_roll,Player1_uid,self()}.
+player1_rolldice(Pid,Player1_uid,BuyIn) -> 
+    Pid ! {p1_roll,Player1_uid,buy_in, list_to_integer(BuyIn), self()}.
 
-player1_makecall(Pid,Player1_uid,D1,D2,D3,D4,D5) -> 
-    Pid ! {p1_call,Player1_uid,self(),D1,D2,D3,D4,D5},
+player1_makecall(Pid,Player1_uid,D1,D2,D3,D4,D5,P1Raise) -> 
+    Pid ! {p1_call,Player1_uid,self(),D1,D2,D3,D4,D5,p1_raise,list_to_integer(P1Raise)},
     receive
         valid_call -> valid_call;
         invalid_call -> invalid_call
@@ -181,6 +191,9 @@ player1_makecall(Pid,Player1_uid,D1,D2,D3,D4,D5) ->
 
 player2_findcall(Pid,Player2_uid) -> 
     Pid ! {p2_findcall,Player2_uid,self()}.
+
+player2_trustcall(Pid,Player2_uid,P2Bet) ->
+    Pid ! {trust,Player2_uid,self(),bet,P2Bet}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 out(Arg) ->
@@ -204,9 +217,9 @@ out(Arg, ["join", "room_pid", Pid, "uid", Player2_uid]) ->
     join_gameroom(list_to_pid(Pid), Player2_uid),
     {html, Player2_uid};
 
-out(Arg, ["rolldice", "room_pid", Pid, "p1_uid", Player1_uid]) -> 
+out(Arg, ["rolldice", "room_pid", Pid, "p1_uid", Player1_uid,"buy_in", BuyIn]) -> 
     io:format("!rolldice. ~n",[]),
-    player1_rolldice(list_to_pid(Pid),Player1_uid),
+    player1_rolldice(list_to_pid(Pid),Player1_uid,BuyIn),
     receive
         {dice_result,Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value} ->
             %build dice result json.
@@ -215,10 +228,10 @@ out(Arg, ["rolldice", "room_pid", Pid, "p1_uid", Player1_uid]) ->
             {html, DiceResultJsonStr}
     end;
 
-out(Arg, ["makecall", "room_pid", Pid, "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5]) -> 
+out(Arg, ["makecall", "room_pid", Pid, "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
     io:format("p1 make call. ~n",[]),
     [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
-    ValidCall = player1_makecall(list_to_pid(Pid),Player1_uid,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value),
+    ValidCall = player1_makecall(list_to_pid(Pid),Player1_uid,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1Raise),
     Response = [ {code,ValidCall}  ],
     Output = mochijson2:encode({struct, Response}),
     {html, Output};
@@ -237,12 +250,25 @@ out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) ->
     io:format("p2 find out p1 call. ~n",[]),
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
-        {"p1_calldice", SortedDiceComb} ->
-%io:format("SortedDiceComb: ~w~n",[SortedDiceComb]),
-            ConvertFun = fun([X]) -> list_to_binary([X]) end,
-            CallDiceConverted = lists:map(ConvertFun, SortedDiceComb),
-%io:format("after: ~w~n",[CallDiceConverted]),
-            P1DiceResultJson = {p1_call,CallDiceConverted},
-            P1DiceResultJsonStr = mochijson2:encode({struct, [P1DiceResultJson]}),
+        {"p1_calldice", SortedCallDice, "p1_buyin", P1BuyIn, "p1_raise", P1Raise} ->
+io:format("SortedCallDice: p1_raise: ~s, buyin: ~s~n",[P1Raise,P1BuyIn]),
+io:format("SortedCallDice: ~w~n",[SortedCallDice]),
+            %ConvertFun = fun([X]) -> list_to_binary([X]) end,
+            ConvertFun = fun([X]) -> list_to_integer([X]) end,
+            CallDiceConverted = lists:map(ConvertFun, SortedCallDice),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,CallDiceConverted},{p1_buyin,list_to_integer(P1BuyIn)},{p1_raise,list_to_integer(P1Raise)}]}),
+io:format("P1DiceResultJsonStr: ~s~n",[P1DiceResultJsonStr]),
+            {html, P1DiceResultJsonStr}
+    end;
+
+out(Arg, ["p2_trust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]) -> 
+    io:format("p2 trust. ~n",[]),
+    player2_trustcall(list_to_pid(Pid),Player2_uid,P2Bet),
+    receive
+        {p1_dice,SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise} ->
+io:format("p2 trust get actual p1 call~n"),
+            ConvertFun = fun([X]) -> list_to_integer([X]) end,
+            CallDiceConverted = lists:map(ConvertFun, SortedCallDice),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,CallDiceConverted},{p1_actual,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
     end.
