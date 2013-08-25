@@ -21,7 +21,7 @@ $json = json_decode($result,true);
 
 //p1 make call
 $raise=2;
-$result = file_get_contents("http://54.213.19.254/gameroom/makecall/room_pid/$pid/p1_uid/11/call/2/2/3/2/3/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/makecall/room_pid/$pid/p1_uid/11/call/2/2/3/3/9/raise/$raise");
 echo "p1 make call: $result \n";
 $json = json_decode($result,true);
 
@@ -30,8 +30,16 @@ $result = file_get_contents("http://54.213.19.254/gameroom/get_p1_call/room_pid/
 echo "p2 receive p1: $result \n";
 $json = json_decode($result,true);
 
+//p2 not trust
+$result = file_get_contents("http://54.213.19.254/gameroom/p2_nottrust/room_pid/$pid/p2_uid/22/p2_bet/10");
+echo "p2 not trust: $result \n";
+$json = json_decode($result,true);
+
+
 //p2 trust
+/*
 $result = file_get_contents("http://54.213.19.254/gameroom/p2_trust/room_pid/$pid/p2_uid/22/p2_bet/10");
 echo "p2 trust: $result \n";
 $json = json_decode($result,true);
+*/
 ?>
