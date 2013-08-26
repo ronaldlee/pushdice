@@ -1,6 +1,7 @@
 -module(gameroom).
 -include("/home/ubuntu/yaws/include/yaws_api.hrl").
 -compile(export_all).
+-define(MAX_DICE_SCORE,84).
 
 getDiceScore(DiceList) ->
 io:format("get score int dice list: ~w~n",[DiceList]),
@@ -8,85 +9,91 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	%{"1","2","3","4","5"} -> io:format("match 1 ~n",[]), true;
 	%{"2","3","4","5","6"} -> io:format("match 2 ~n",[]), true;
 
-	[1,1,1,1,1] -> 79;
-	[6,6,6,6,6] -> 78;
-	[5,5,5,5,5] -> 77;
-	[4,4,4,4,4] -> 76;
-	[3,3,3,3,3] -> 75;
-	[2,2,2,2,2] -> 74;
+	[1,1,1,1,1] -> 84;
+	[6,6,6,6,6] -> 83;
+	[5,5,5,5,5] -> 82;
+	[4,4,4,4,4] -> 81;
+	[3,3,3,3,3] -> 80;
+	[2,2,2,2,2] -> 79;
 
-	[1,1,1,1,_] -> 73;
-	[6,6,6,6,_] -> 72;
-	[5,5,5,5,_] -> 71;
-	[4,4,4,4,_] -> 70;
-	[3,3,3,3,_] -> 69;
-	[2,2,2,2,_] -> 68;
+	[1,1,1,1,_] -> 78;
+	[6,6,6,6,_] -> 77;
+	[5,5,5,5,_] -> 76;
+	[4,4,4,4,_] -> 75;
+	[3,3,3,3,_] -> 74;
+	[2,2,2,2,_] -> 73;
 
-	[1,1,1,6,6] -> 67;
-	[1,1,1,5,5] -> 66;
-	[1,1,1,4,4] -> 65;
-	[1,1,1,3,3] -> 64;
-	[1,1,1,2,2] -> 63;
+	[1,1,1,6,6] -> 72;
+	[1,1,1,5,5] -> 71;
+	[1,1,1,4,4] -> 70;
+	[1,1,1,3,3] -> 69;
+	[1,1,1,2,2] -> 68;
 
-	[2,2,2,1,1] -> 62;
-	[2,2,2,6,6] -> 61;
-	[2,2,2,5,5] -> 60;
-	[2,2,2,4,4] -> 59;
-	[2,2,2,3,3] -> 58;
+	[6,6,6,1,1] -> 67;
+	[6,6,6,5,5] -> 66;
+	[6,6,6,4,4] -> 65;
+	[6,6,6,3,3] -> 64;
+	[6,6,6,2,2] -> 63;
 
-	[3,3,3,1,1] -> 57;
-	[3,3,3,6,6] -> 56;
-	[3,3,3,5,5] -> 55;
-	[3,3,3,4,4] -> 54;
-	[3,3,3,2,2] -> 53;
+	[5,5,5,1,1] -> 62;
+	[5,5,5,6,6] -> 61;
+	[5,5,5,4,4] -> 60;
+	[5,5,5,3,3] -> 59;
+	[5,5,5,2,2] -> 58;
 
-	[4,4,4,1,1] -> 52;
-	[4,4,4,6,6] -> 51;
-	[4,4,4,5,5] -> 50;
-	[4,4,4,3,3] -> 49;
-	[4,4,4,2,2] -> 48;
+	[4,4,4,1,1] -> 57;
+	[4,4,4,6,6] -> 56;
+	[4,4,4,5,5] -> 55;
+	[4,4,4,3,3] -> 54;
+	[4,4,4,2,2] -> 53;
 
-	[5,5,5,1,1] -> 47;
-	[5,5,5,6,6] -> 46;
-	[5,5,5,4,4] -> 45;
-	[5,5,5,3,3] -> 44;
-	[5,5,5,2,2] -> 43;
+	[3,3,3,1,1] -> 52;
+	[3,3,3,6,6] -> 51;
+	[3,3,3,5,5] -> 50;
+	[3,3,3,4,4] -> 49;
+	[3,3,3,2,2] -> 48;
 
-	[6,6,6,1,1] -> 42;
-	[6,6,6,5,5] -> 41;
-	[6,6,6,4,4] -> 40;
-	[6,6,6,3,3] -> 39;
-	[6,6,6,2,2] -> 38;
+	[2,2,2,1,1] -> 47;
+	[2,2,2,6,6] -> 46;
+	[2,2,2,5,5] -> 45;
+	[2,2,2,4,4] -> 44;
+	[2,2,2,3,3] -> 43;
 
-	[1,1,6,6,_] -> 37;
-	[1,1,5,5,_] -> 36;
-	[1,1,4,4,_] -> 35;
-	[1,1,3,3,_] -> 34;
-	[1,1,2,2,_] -> 33;
+	[1,1,6,6,_] -> 42;
+	[1,1,5,5,_] -> 41;
+	[1,1,4,4,_] -> 40;
+	[1,1,3,3,_] -> 39;
+	[1,1,2,2,_] -> 38;
 
-	[2,2,1,1,_] -> 32;
-	[2,2,6,6,_] -> 31;
-	[2,2,5,5,_] -> 30;
-	[2,2,4,4,_] -> 29;
-	[2,2,3,3,_] -> 28;
+	[6,6,1,1,_] -> 37;
+	[6,6,5,5,_] -> 36;
+	[6,6,4,4,_] -> 35;
+	[6,6,3,3,_] -> 34;
+	[6,6,2,2,_] -> 33;
 
-	[3,3,1,1,_] -> 27;
-	[3,3,6,6,_] -> 26;
-	[3,3,5,5,_] -> 25;
-	[3,3,4,4,_] -> 24;
-	[3,3,2,2,_] -> 23;
+	[5,5,1,1,_] -> 32;
+	[5,5,6,6,_] -> 31;
+	[5,5,4,4,_] -> 30;
+	[5,5,3,3,_] -> 29;
+	[5,5,2,2,_] -> 28;
 
-	[4,4,1,1,_] -> 22;
-	[4,4,6,6,_] -> 21;
-	[4,4,5,5,_] -> 20;
-	[4,4,3,3,_] -> 19;
-	[4,4,2,2,_] -> 18;
+	[4,4,1,1,_] -> 27;
+	[4,4,6,6,_] -> 26;
+	[4,4,5,5,_] -> 25;
+	[4,4,3,3,_] -> 24;
+	[4,4,2,2,_] -> 23;
 
-	[5,5,1,1,_] -> 17;
-	[5,5,6,6,_] -> 16;
-	[5,5,4,4,_] -> 15;
-	[5,5,3,3,_] -> 14;
-	[5,5,2,2,_] -> 13;
+	[3,3,1,1,_] -> 22;
+	[3,3,6,6,_] -> 21;
+	[3,3,5,5,_] -> 20;
+	[3,3,4,4,_] -> 19;
+	[3,3,2,2,_] -> 18;
+
+	[2,2,1,1,_] -> 17;
+	[2,2,6,6,_] -> 16;
+	[2,2,5,5,_] -> 15;
+	[2,2,4,4,_] -> 14;
+	[2,2,3,3,_] -> 13;
 
 	[1,1,1,_,_] -> 12;
 	[6,6,6,_,_] -> 11;
@@ -118,7 +125,7 @@ start(Player1_uid,Player2_uid) ->
 init_gameroom(Player1_uid,Player2_uid) ->
     receive
         {check, FromPid} -> 
-            FromPid ! "init";
+            FromPid ! [{state,"init_gameroom"},{p1_uid,Player1_uid},{p2_uid,Player2_uid}];
         {join, Player2_uid} ->
             io:format("join. ~s~n",[Player2_uid]),
             wait_for_p1_rolldice();
@@ -130,7 +137,7 @@ init_gameroom(Player1_uid,Player2_uid) ->
 wait_for_p1_rolldice() ->
     receive
         {check, FromPid} -> 
-            FromPid ! "p1_roll";
+            FromPid ! [{state,"wait_for_p1_rolldice"}];
         {p1_roll,Player1_uid,buy_in, BuyIn, FromPid} ->
         %check if p1 has enough to make the blind first
             io:format("p1 roll dice ~n",[]),
@@ -154,24 +161,15 @@ wait_for_p1_rolldice() ->
 
             io:format("p1 roll dice: ~w ~n",[SortedActualDice]),
             FromPid ! {dice_result,SortedActualDice},
-            wait_for_p1_makecall(SortedActualDice,BuyIn)
+            wait_for_p1_makecall(SortedActualDice,BuyIn,BuyIn)
     end.
 
-wait_for_p1_makecall(SortedActualDice,P1BuyIn) ->
+wait_for_p1_makecall(SortedActualDice,P1BuyIn,Pot) ->
     receive
         {check, FromPid} -> 
-            FromPid ! "p1_makecall";
-        {p1_call,Player1_uid,FromPid,P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5,p1_raise,P1Raise} ->
+            FromPid ! [{state,"wait_for_p1_makecall"},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{pot,Pot}];
+        {p1_call,Player1_uid,FromPid,SortedCallDice,p1_raise,P1Raise} ->
             io:format("make call aaa~n",[]),
-            Player1_uid,
-            %ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
-            %DiceCombConverted = lists:map(ConvertFun, DiceComb),
-            %SortedCallDice = lists:sort(DiceCombConverted),
-
-            SortedRawCallDice = lists:sort([P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5]),
-            ConvertFun = fun([X]) -> list_to_integer([X]) end,
-            SortedCallDice = lists:map(ConvertFun, SortedRawCallDice),
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% Need to check if the call is valid!!!  %%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -180,28 +178,29 @@ io:format("make call ~w~n",[SortedCallDice]),
             case IsValid of 
                 false ->
                     FromPid ! invalid_call,
-                    wait_for_p1_makecall(SortedActualDice,P1BuyIn);
+                    wait_for_p1_makecall(SortedActualDice,P1BuyIn,Pot);
                 _ ->
 io:format("dice score ~w~n",[IsValid]),
                     FromPid ! valid_call,
-                    wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise)
+                    NewPot = Pot+P1Raise,
+                    wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,NewPot)
             end;
         _ -> 
             io:format("whatt!! ~n",[])
             
     end.
 
-wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise) ->
+wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot) ->
     io:format("wait for p2 find call~n",[]),
     receive
         {check, FromPid} -> 
-            FromPid ! "p2_findcall";
+            FromPid ! [{state,"wait_for_p2_findcall"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise},{pot,Pot}];
         {p2_findcall,Player2_uid,FromPid} ->
             %return p1 actual dice combination
 io:format("p2_findcall 1 ~n",[]),
-            FromPid ! {"p1_calldice", SortedCallDice, "p1_buyin",P1BuyIn, "p1_raise",P1Raise},
+            FromPid ! {"p1_calldice", SortedCallDice, "p1_buyin",P1BuyIn, "p1_raise",P1Raise,"pot",Pot},
 io:format("p2_findcall 2 ~n",[]),
-            wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise)
+            wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot)
     end.
 
 %append wildcard "9" to fill up the list to lenght 5.
@@ -212,28 +211,29 @@ appendWildCardToList(TargetList,Count) ->
     appendWildCardToList(NewTargetList,NewCount).
 
 
-%wait_for_p2_trust_or_not(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise) ->
-wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise) ->
+wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot) ->
 io:format("wait for p2 trust or not, call: ~w; actual: ~w ~n",[SortedCallDice,SortedActualDice]),
     receive
         {check, FromPid} -> 
-            FromPid ! "p2_trust_not";
-        {p2_trust,Player2_uid,FromPid,bet,P2Bet} ->
-io:format("trust! ~w, ~w ~n",[P1BuyIn,P1Raise]),
+            FromPid ! [{state,"wait_for_p2_trust_or_not"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{prev_raise,PrevRaise},{pot,Pot}];
+        {p2_trust,Player2_uid,FromPid,bet,Bet} ->
+io:format("trust! ~w, ~w ~n",[P1BuyIn,PrevRaise]),
             %check if p2 bet matches p1's, if not return error
-            P1TotalBet = P1BuyIn + P1Raise,
-io:format("trust P1TotalBet: ~w, P2Bet: ~w  ~n",[P1TotalBet,P2Bet]),
+            P1TotalBet = P1BuyIn + PrevRaise,
+io:format("trust P1 TotalBet: ~w, P2Bet: ~w  ~n",[P1TotalBet,Bet]),
             if 
-                (P2Bet < P1TotalBet) ->
+                (Bet < P1TotalBet) ->
                     io:format("p2 bad bet! ~n"),
-                    FromPid ! {p2_bad_bet,P1BuyIn,P1Raise};
+                    FromPid ! {p2_bad_bet,P1BuyIn,PrevRaise,Bet,Pot},
+                    wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot);
                 true ->
                     io:format("p2 valid bet! ~n"),
                     %else return p1's actual dice
-                    FromPid ! {p1_dice,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise},
-                    wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,P2Bet)
+                    FromPid ! {p1_dice,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot},
+                    NewPot = Pot + Bet,
+                    wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,NewPot)
             end;
-        {p2_not_trust,Player2_uid,FromPid,bet,P2Bet} ->
+        {p2_not_trust,Player2_uid,FromPid,bet,Bet} ->
             io:format("p2 not trust, check p1 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
             %if p1 actual result not match the dice comb call by p1, p2 win. else p2 lose
 
@@ -259,11 +259,68 @@ io:format("trust P1TotalBet: ~w, P2Bet: ~w  ~n",[P1TotalBet,P2Bet]),
             if 
                 (IsActualMatchCall) -> 
                     io:format("p1 call match actual! p2 lose.. ~n"),
-                    FromPid ! {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise},
+                    FromPid ! {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
                     game_over();
                 true ->
                     io:format("p1 call NOT match actual! p2 win.. ~n"),
-                    FromPid ! {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise},
+                    %update p2 player's coin by adding pot
+                    FromPid ! {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
+                    game_over()
+            end
+    end.
+
+wait_for_p1_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot) ->
+io:format("wait for p1 trust or not, call: ~w; actual: ~w ~n",[SortedCallDice,SortedActualDice]),
+    receive
+        {check, FromPid} -> 
+            FromPid ! [{state,"wait_for_p1_trust_or_not"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{prev_raise,PrevRaise},{pot,Pot}];
+        {p1_trust,Player1_uid,FromPid,bet,Bet} ->
+            %check if p1 bet matches p2's, if not return error
+            P1TotalBet = P1BuyIn + PrevRaise,
+            if 
+                (Bet < PrevRaise) ->
+                    io:format("p1 bad bet! ~n"),
+                    FromPid ! {p1_bad_bet,P1BuyIn,PrevRaise,Bet,Pot},
+                    wait_for_p1_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot);
+                true ->
+                    io:format("p1 valid bet! ~n"),
+                    %else return p1's actual dice
+                    FromPid ! {p2_dice,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
+                    NewPot = Pot + Bet,
+                    wait_for_p1_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,NewPot)
+            end;
+        {p1_not_trust,Player1_uid,FromPid,bet,Bet} ->
+            io:format("p1 not trust, check p2 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
+            %if p2 actual result not match the dice comb call by p1, p2 win. else p2 lose
+
+            SubtractedList =  SortedActualDice -- SortedCallDice,
+            io:format("p1 not trust, SubtractedList: ~w ~n",[SubtractedList]),
+
+            SubtractedSortedActualDice = SortedActualDice -- SubtractedList,
+            io:format("p1 not trust, SubtractedSortedActualDice: ~w ~n",[SubtractedSortedActualDice]),
+
+            %append 9 at end to fill up the list to length 5
+            AppendCount  = 5 - length(SubtractedSortedActualDice),
+            io:format("p1 not trust, AppendCount: ~w ~n",[AppendCount]),
+    
+            MatchDiceList = appendWildCardToList(SubtractedSortedActualDice,AppendCount),
+            io:format("p1 not trust, MatchDiceList: ~w, SortedCallDice: ~w ~n",[MatchDiceList,SortedCallDice]),
+
+            IsActualMatchCall = case MatchDiceList of 
+                SortedCallDice -> true;
+                _ -> false        
+            end,
+            io:format("p1 not trust 2 ~n"),
+
+            if 
+                (IsActualMatchCall) -> 
+                    io:format("p2 call match actual! p1 lose.. ~n"),
+                    FromPid ! {p1_lose,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
+                    game_over();
+                true ->
+                    io:format("p2 call NOT match actual! p1 win.. ~n"),
+                    %update p2 player's coin by adding pot
+                    FromPid ! {p1_win,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
                     game_over()
             end
     end.
@@ -271,7 +328,7 @@ io:format("trust P1TotalBet: ~w, P2Bet: ~w  ~n",[P1TotalBet,P2Bet]),
 game_over() ->
     receive 
         {check, FromPid} ->
-          FromPid ! "gameover";
+          FromPid ! [{state,"game_over"}];
         _ ->
           false
     end.
@@ -296,22 +353,85 @@ rerollDice(SortedActualDice,ReRollDiceFlagList,NewActualDice) ->
     end.
 
 
-wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,P2Bet) ->
+wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,P2Bet,Pot) ->
 io:format("wait_for_p2_pick_dice_to_roll ~n"),
     receive
+        {check, FromPid} ->
+            FromPid ! [{state,"wait_for_p2_pick_dice_to_roll"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise},{p2_bet,P2Bet},{pot,Pot}];
         {p2_reroll,Player2_uid,FromPid,ReRollDicePosList} ->
             NewSortedActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
 io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
-            FromPid ! {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet},
-            wait_for_p2_call(SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet)
+            FromPid ! {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet,Pot},
+            wait_for_p2_call(SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet,Pot)
     end.
 
-wait_for_p2_call(SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet) ->
+wait_for_p1_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) ->
+io:format("wait_for_p1_pick_dice_to_roll ~n"),
+    receive
+        {check, FromPid} ->
+            FromPid ! [{state,"wait_for_p1_pick_dice_to_roll"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{prev_raise,PrevRaise},{bet,Bet},{pot,Pot}];
+        {p1_reroll,Player1_uid,FromPid,ReRollDicePosList} ->
+            NewSortedActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
+io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
+            FromPid ! {p1_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,PrevRaise,Bet,Pot},
+            wait_for_p1_call(SortedCallDice,NewSortedActualDice,P1BuyIn,PrevRaise,Bet,Pot)
+    end.
+
+wait_for_p2_call(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) ->
     io:format("wait_for_p2_call~n"),
     receive
-        {p2_call,Player2_uid,FromPid,P2SortedCallDice} ->
+        {p2_call,Player2_uid,FromPid,P2SortedCallDice,p2_raise,P2Raise} ->
+io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
             %if the new call is "smaller" than the previous call -> error
-            true; 
+            %make sure P2SortedCallDice is > SortedCallDice
+            PrevSortedCallDiceScore = getDiceScore(SortedCallDice),
+            P2SortedCallDiceScore = getDiceScore(P2SortedCallDice),
+
+            if 
+                (P2SortedCallDiceScore == ?MAX_DICE_SCORE) ->
+                    %what will happen??
+                    true;
+                (P2SortedCallDiceScore > PrevSortedCallDiceScore) ->
+                    io:format("P2 call is greater than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
+                    %valid call
+                    NewPot = Pot + P2Raise,
+                    NewPrevRaise = P2Raise,
+
+                    wait_for_p1_trust_or_not(P2SortedCallDice,SortedActualDice,P1BuyIn,NewPrevRaise,NewPot);
+                true ->
+                    io:format("Invalid P2 call is less than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
+                    FromPid ! invalid_call,
+                    wait_for_p2_call(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) 
+            end;
+        true -> 1
+    end.
+
+wait_for_p1_call(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) ->
+    io:format("wait_for_p1_call~n"),
+    receive
+        {p1_call,Player1_uid,FromPid,P1SortedCallDice,p1_raise,P1Raise} ->
+io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
+            %if the new call is "smaller" than the previous call -> error
+            %make sure P2SortedCallDice is > SortedCallDice
+            PrevSortedCallDiceScore = getDiceScore(SortedCallDice),
+            P1SortedCallDiceScore = getDiceScore(P1SortedCallDice),
+
+            if 
+                (P1SortedCallDiceScore == ?MAX_DICE_SCORE) ->
+                    %what will happen??
+                    true;
+                (P1SortedCallDiceScore > PrevSortedCallDiceScore) ->
+                    io:format("P1 call is greater than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
+                    %valid call
+                    NewPot = Pot + PrevRaise,
+                    NewPrevRaise = PrevRaise,
+
+                    wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,NewPrevRaise,NewPot);
+                true ->
+                    io:format("Invalid P2 call is less than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
+                    FromPid ! invalid_call,
+                    wait_for_p1_call(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) 
+            end;
         true -> 1
     end.
 
@@ -321,14 +441,26 @@ join_gameroom(Pid,Player2_uid) ->
 player1_rolldice(Pid,Player1_uid,BuyIn) -> 
     Pid ! {p1_roll,Player1_uid,buy_in, list_to_integer(BuyIn), self()}.
 
-player1_makecall(Pid,Player1_uid,D1,D2,D3,D4,D5,P1Raise) -> 
-    Pid ! {p1_call,Player1_uid,self(),D1,D2,D3,D4,D5,p1_raise,list_to_integer(P1Raise)},
+player1_makecall(Pid,Player1_uid,DiceList,P1Raise) -> 
+    SortedRawCallDice = lists:sort(DiceList),
+    ConvertFun = fun([X]) -> list_to_integer([X]) end,
+    SortedCallDice = lists:map(ConvertFun, SortedRawCallDice),
+
+io:format("p1_makecall: ~w ~n",[SortedCallDice]),
+
+    Pid ! {p1_call,Player1_uid,self(),SortedCallDice,p1_raise,P1Raise},
     receive
         valid_call -> valid_call;
         invalid_call -> invalid_call
     end.
-player2_makecall(Pid,Player2_uid,D1,D2,D3,D4,D5,P2Raise) -> 
-    Pid ! {p2_call,Player2_uid,self(),D1,D2,D3,D4,D5,p2_raise,list_to_integer(P2Raise)},
+player2_makecall(Pid,Player2_uid,DiceList,P2Raise) -> 
+    SortedRawCallDice = lists:sort(DiceList),
+    ConvertFun = fun([X]) -> list_to_integer([X]) end,
+    SortedCallDice = lists:map(ConvertFun, SortedRawCallDice),
+
+io:format("p2_makecall: ~w ~n",[SortedCallDice]),
+
+    Pid ! {p2_call,Player2_uid,self(),SortedCallDice,p2_raise,P2Raise},
     receive
         valid_call -> valid_call;
         invalid_call -> invalid_call
@@ -337,10 +469,15 @@ player2_makecall(Pid,Player2_uid,D1,D2,D3,D4,D5,P2Raise) ->
 player2_findcall(Pid,Player2_uid) -> 
     Pid ! {p2_findcall,Player2_uid,self()}.
 
-player2_trustcall(Pid,Player2_uid,P2Bet) ->
-    Pid ! {p2_trust,Player2_uid,self(),bet,list_to_integer(P2Bet)}.
-player2_nottrustcall(Pid,Player2_uid,P2Bet) ->
-    Pid ! {p2_not_trust,Player2_uid,self(),bet,list_to_integer(P2Bet)}.
+player2_trustcall(Pid,Player2_uid,Bet) ->
+    Pid ! {p2_trust,Player2_uid,self(),bet,list_to_integer(Bet)}.
+player1_trustcall(Pid,Player1_uid,Bet) ->
+    Pid ! {p1_trust,Player1_uid,self(),bet,list_to_integer(Bet)}.
+
+player2_nottrustcall(Pid,Player2_uid,Bet) ->
+    Pid ! {p2_not_trust,Player2_uid,self(),bet,list_to_integer(Bet)}.
+player1_nottrustcall(Pid,Player1_uid,Bet) ->
+    Pid ! {p1_not_trust,Player1_uid,self(),bet,list_to_integer(Bet)}.
 
 player2_reroll(Pid,Player2_uid,ReRollDicePosList) ->
     Pid ! {p2_reroll,Player2_uid,self(),ReRollDicePosList}.
@@ -380,8 +517,16 @@ out(Arg, ["rolldice", "room_pid", Pid, "p1_uid", Player1_uid,"buy_in", BuyIn]) -
 
 out(Arg, ["makecall", "room_pid", Pid, "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
     io:format("p1 make call. ~n",[]),
-    [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
-    ValidCall = player1_makecall(list_to_pid(Pid),Player1_uid,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1Raise),
+    %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
+    ValidCall = player1_makecall(list_to_pid(Pid),Player1_uid,[D1,D2,D3,D4,D5],list_to_integer(P1Raise)),
+    Response = [ {code,ValidCall}  ],
+    Output = mochijson2:encode({struct, Response}),
+    {html, Output};
+
+out(Arg, ["makecall", "room_pid", Pid, "p2_uid", Player2_uid,"call",D1,D2,D3,D4,D5,"raise",P2Raise]) -> 
+    io:format("p2 make call. ~n",[]),
+    %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
+    ValidCall = player2_makecall(list_to_pid(Pid),Player2_uid,[D1,D2,D3,D4,D5],list_to_integer(P2Raise)),
     Response = [ {code,ValidCall}  ],
     Output = mochijson2:encode({struct, Response}),
     {html, Output};
@@ -392,41 +537,42 @@ out(Arg, ["check", "room_pid", Pid]) ->
     RoomState = receive
         State -> State
     end,
-    Response = [ {code,0}, {room_state,list_to_binary(RoomState)} ],
-    Output = mochijson2:encode({struct, Response}),
+    Output = mochijson2:encode({struct, [RoomState]}),
     {html, Output};
 
 out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) -> 
     io:format("p2 find out p1 call. ~n",[]),
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
-        {"p1_calldice", SortedCallDice, "p1_buyin", P1BuyIn, "p1_raise", P1Raise} ->
+        {"p1_calldice", SortedCallDice, "p1_buyin", P1BuyIn, "p1_raise", P1Raise,"pot",Pot} ->
     io:format("p1_calldice. ~n",[]),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise},{pot,Pot}]}),
             {html, P1DiceResultJsonStr}
     end;
 
-out(Arg, ["p2_trust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]) -> 
+out(Arg, ["p2_trust", "room_pid", Pid, "p2_uid", Player2_uid, "bet",P2Bet]) -> 
     io:format("p2 trust. ~n",[]),
     player2_trustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
-        {p1_dice,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
+        {p1_dice,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot} ->
 io:format("p2 trust get actual p1 call~n"),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{prev_raise,PrevRaise},{p2_bet,Bet}]}),
             {html, P1DiceResultJsonStr};
-        {p2_bad_bet,P1BuyIn,P1Raise} ->
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{invalid_bet,list_to_integer(P2Bet)},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+        {p2_bad_bet,P1BuyIn,PrevRaise,Bet,Pot} ->
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{invalid_bet,list_to_integer(P2Bet)},{p1_buyin,P1BuyIn},{p1_raise,PrevRaise},{pot,Pot}]}),
             {html, P1DiceResultJsonStr}
+        %_ -> 
+        %    io:format("p2_trust not found callback! ~n")
     end;
 
-out(Arg, ["p2_nottrust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]) -> 
+out(Arg, ["p2_nottrust", "room_pid", Pid, "p2_uid", Player2_uid, "bet",P2Bet]) -> 
     io:format("p2 not trust. ~n",[]),
     player2_nottrustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
-        {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
+        {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot} ->
             P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_lose'},{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr};
-        {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
+        {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot} ->
             P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_win'},{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
     end;
@@ -437,20 +583,17 @@ out(Arg, ["p2_rerolldice", "room_pid", Pid, "p2_uid", Player2_uid, "dice_pos",Di
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player2_reroll(list_to_pid(Pid),Player2_uid,ReRollDicePosList),
     receive
-        {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet} ->
+        {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet,Pot} ->
 io:format("p2_dicerolled~n"),
-            ResultJsonStr = mochijson2:encode({struct, [{rolled_dice,NewSortedActualDice},{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise},{p2_bet,P2Bet}]}),
+            ResultJsonStr = mochijson2:encode({struct, [{rolled_dice,NewSortedActualDice},{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise},{p2_bet,P2Bet},{pot,Pot}]}),
             {html, ResultJsonStr}
     end;
 
 out(Arg, ["makecall", "room_pid", Pid, "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P2Raise]) -> 
     io:format("p2 make call. ~n",[]),
-    [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
-    ValidCall = player2_makecall(list_to_pid(Pid),Player2_uid,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P2Raise),
+    ValidCall = player2_makecall(list_to_pid(Pid),Player2_uid,[D1,D2,D3,D4,D5],list_to_integer(P2Raise)),
     Response = [ {code,ValidCall}  ],
     Output = mochijson2:encode({struct, Response}),
     {html, Output}.
-
-
 
 

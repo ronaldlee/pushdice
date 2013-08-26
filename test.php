@@ -33,14 +33,14 @@ $json = json_decode($result,true);
 
 //p2 not trust
 /*
-$result = file_get_contents("http://54.213.19.254/gameroom/p2_nottrust/room_pid/$pid/p2_uid/22/p2_bet/10");
+$result = file_get_contents("http://54.213.19.254/gameroom/p2_nottrust/room_pid/$pid/p2_uid/22/bet/10");
 echo "p2 not trust: $result \n";
 $json = json_decode($result,true);
 */
 
 
 //p2 trust
-$result = file_get_contents("http://54.213.19.254/gameroom/p2_trust/room_pid/$pid/p2_uid/22/p2_bet/10");
+$result = file_get_contents("http://54.213.19.254/gameroom/p2_trust/room_pid/$pid/p2_uid/22/bet/10");
 echo "p2 trust: $result \n";
 $json = json_decode($result,true);
 
@@ -50,7 +50,14 @@ $result = file_get_contents("http://54.213.19.254/gameroom/p2_rerolldice/room_pi
 echo "p2 reroll: $result \n";
 $json = json_decode($result,true);
 
+$raise=12;
+$result = file_get_contents("http://54.213.19.254/gameroom/makecall/room_pid/$pid/p2_uid/22/call/2/2/2/2/9/raise/$raise");
+echo "p2 make call: $result \n";
+$json = json_decode($result,true);
 
-
+//p1 trust
+$result = file_get_contents("http://54.213.19.254/gameroom/p1_trust/room_pid/$pid/p1_uid/11/bet/10");
+echo "p1 trust: $result \n";
+$json = json_decode($result,true);
 
 ?>
