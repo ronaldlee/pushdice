@@ -220,11 +220,11 @@ io:format("wait for p2 trust or not, call: ~w; actual: ~w ~n",[SortedCallDice,So
 io:format("trust! ~w, ~w ~n",[P1BuyIn,P1Raise]),
             %check if p2 bet matches p1's, if not return error
             P1TotalBet = P1BuyIn + P1Raise,
-io:format("trust 2! ~w ~n",[P1TotalBet]),
+io:format("trust P1TotalBet: ~w, P2Bet: ~w  ~n",[P1TotalBet,P2Bet]),
             if 
                 (P2Bet < P1TotalBet) ->
                     io:format("p2 bad bet! ~n"),
-                    FromPid ! "p2_bad_bet";
+                    FromPid ! {p2_bad_bet,P1BuyIn,P1Raise};
                 true ->
                     io:format("p2 valid bet! ~n"),
                     %else return p1's actual dice
@@ -295,9 +295,9 @@ player2_findcall(Pid,Player2_uid) ->
     Pid ! {p2_findcall,Player2_uid,self()}.
 
 player2_trustcall(Pid,Player2_uid,P2Bet) ->
-    Pid ! {p2_trust,Player2_uid,self(),bet,P2Bet}.
+    Pid ! {p2_trust,Player2_uid,self(),bet,list_to_integer(P2Bet)}.
 player2_nottrustcall(Pid,Player2_uid,P2Bet) ->
-    Pid ! {p2_not_trust,Player2_uid,self(),bet,P2Bet}.
+    Pid ! {p2_not_trust,Player2_uid,self(),bet,list_to_integer(P2Bet)}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 out(Arg) ->
@@ -367,6 +367,9 @@ out(Arg, ["p2_trust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]) -
         {p1_dice,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
 io:format("p2 trust get actual p1 call~n"),
             P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+            {html, P1DiceResultJsonStr};
+        {p2_bad_bet,P1BuyIn,P1Raise} ->
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{invalid_bet,list_to_integer(P2Bet)},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
     end;
 
