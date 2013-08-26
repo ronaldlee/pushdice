@@ -444,7 +444,7 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
                     FromPid ! {valid_call,NewPot},
                     wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,NewPrevRaise,NewPot);
                 true ->
-                    io:format("Invalid P2 call is less than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
+                    io:format("Invalid P1 call is less than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
                     FromPid ! {invalid_call,Pot},
                     wait_for_p1_call(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) 
             end;
@@ -478,6 +478,19 @@ player2_call(Pid,Player2_uid,DiceList,P2Raise) ->
 io:format("p2_call: ~w ~n",[SortedCallDice]),
 
     Pid ! {p2_call,Player2_uid,self(),SortedCallDice,p2_raise,P2Raise},
+    receive
+        {valid_call,Pot} -> {valid_call,Pot};
+        {invalid_call,Pot} -> {invalid_call,Pot}
+    end.
+
+player1_call(Pid,Player1_uid,DiceList,P1Raise) -> 
+    SortedRawCallDice = lists:sort(DiceList),
+    ConvertFun = fun([X]) -> list_to_integer([X]) end,
+    SortedCallDice = lists:map(ConvertFun, SortedRawCallDice),
+
+io:format("p1_call: ~w ~n",[SortedCallDice]),
+
+    Pid ! {p1_call,Player1_uid,self(),SortedCallDice,p1_raise,P1Raise},
     receive
         {valid_call,Pot} -> {valid_call,Pot};
         {invalid_call,Pot} -> {invalid_call,Pot}
@@ -540,11 +553,11 @@ out(Arg, ["makecall", "room_pid", Pid, "p1_uid", Player1_uid,"call",D1,D2,D3,D4,
     ValidCall = player1_makecall(list_to_pid(Pid),Player1_uid,[D1,D2,D3,D4,D5],P1RaiseInt),
     case ValidCall of 
         {valid_call,Pot} ->
-            Response = [ {code,"valid_call"},{raise,P1RaiseInt},{pot,Pot} ],
+            Response = [ {code,valid_call},{raise,P1RaiseInt},{pot,Pot} ],
             Output = mochijson2:encode({struct, Response}),
             {html, Output};
         {invalid_call,Pot} ->
-            Response = [ {code,"invalid_call"},{raise,P1RaiseInt},{pot,Pot} ],
+            Response = [ {code,invalid_call},{raise,P1RaiseInt},{pot,Pot} ],
             Output = mochijson2:encode({struct, Response}),
             {html, Output}
     end;
@@ -641,11 +654,11 @@ out(Arg, ["call", "room_pid", Pid, "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,
     ValidCall = player2_call(list_to_pid(Pid),Player2_uid,[D1,D2,D3,D4,D5],P2RaiseInt),
     case ValidCall of 
         {valid_call,Pot} ->
-            Response = [ {code,"valid_call"},{raise,P2RaiseInt},{pot,Pot} ],
+            Response = [ {code,valid_call},{raise,P2RaiseInt},{pot,Pot} ],
             Output = mochijson2:encode({struct, Response}),
             {html, Output};
         {invalid_call,Pot} ->
-            Response = [ {code,"invalid_call"},{raise,P2RaiseInt},{pot,Pot} ],
+            Response = [ {code,invalid_call},{raise,P2RaiseInt},{pot,Pot} ],
             Output = mochijson2:encode({struct, Response}),
             {html, Output}
     end;
@@ -659,5 +672,19 @@ out(Arg, ["p1_rerolldice", "room_pid", Pid, "p1_uid", Player1_uid, "dice_pos",Di
 io:format("p1_dicerolled~n"),
             ResultJsonStr = mochijson2:encode({struct, [{rolled_dice,NewSortedActualDice},{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{prev_raise,PrevRaise},{bet,Bet},{pot,Pot}]}),
             {html, ResultJsonStr}
-    end.
+    end;
 
+out(Arg, ["call", "room_pid", Pid, "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
+    io:format("p1 make call. ~n",[]),
+    P1RaiseInt = list_to_integer(P1Raise),
+    ValidCall = player1_call(list_to_pid(Pid),Player2_uid,[D1,D2,D3,D4,D5],P1RaiseInt),
+    case ValidCall of 
+        {valid_call,Pot} ->
+            Response = [ {code,valid_call},{raise,P1RaiseInt},{pot,Pot} ],
+            Output = mochijson2:encode({struct, Response}),
+            {html, Output};
+        {invalid_call,Pot} ->
+            Response = [ {code,invalid_call},{raise,P1RaiseInt},{pot,Pot} ],
+            Output = mochijson2:encode({struct, Response}),
+            {html, Output}
+    end.
