@@ -141,6 +141,7 @@ wait_for_p1_rolldice() ->
             %Dice4_value = random:uniform(6),
             %Dice5_value = random:uniform(6),
 
+            %for testing
             Dice1_value = 3,
             Dice2_value = 1,
             Dice3_value = 2,
@@ -274,9 +275,40 @@ game_over() ->
           false
     end.
 
-wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,P2Bet) ->
-true.
 
+rerollDice([],[],NewActualDice) -> 
+    io:format("rerolled dice presorted: ~w~n",[NewActualDice]),
+    %sort the result before returning
+    lists:sort(NewActualDice);
+rerollDice(SortedActualDice,ReRollDiceFlagList,NewActualDice) ->
+    [SH|ST] = SortedActualDice,
+    [RH|RT] = ReRollDiceFlagList,
+
+    if 
+      (RH == 1) ->
+          %random:seed(now()), this makes random always return same!
+          AppendedNewDice = lists:append(NewActualDice,[random:uniform(6)]),
+          rerollDice(ST,RT,AppendedNewDice); 
+      true ->
+          AppendedNewDice = lists:append(NewActualDice,[SH]),
+          rerollDice(ST,RT,AppendedNewDice)
+    end.
+
+
+wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,P2Bet) ->
+io:format("wait_for_p2_pick_dice_to_roll ~n"),
+    receive
+        {p2_reroll,Player2_uid,FromPid,ReRollDicePosList} ->
+            NewSortedActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
+io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
+            FromPid ! {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet},
+            wait_for_p2_call()
+    end.
+
+wait_for_p2_call() ->
+    receive
+        true -> 1
+    end.
 
 join_gameroom(Pid,Player2_uid) ->
     Pid ! {join, Player2_uid}.
@@ -298,6 +330,9 @@ player2_trustcall(Pid,Player2_uid,P2Bet) ->
     Pid ! {p2_trust,Player2_uid,self(),bet,list_to_integer(P2Bet)}.
 player2_nottrustcall(Pid,Player2_uid,P2Bet) ->
     Pid ! {p2_not_trust,Player2_uid,self(),bet,list_to_integer(P2Bet)}.
+
+player2_reroll(Pid,Player2_uid,ReRollDicePosList) ->
+    Pid ! {p2_reroll,Player2_uid,self(),ReRollDicePosList}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 out(Arg) ->
@@ -383,7 +418,16 @@ out(Arg, ["p2_nottrust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]
         {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
             P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_win'},{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
+    end;
+
+%when the dice pos is "1", mean that it is reroll, otherwise 0 means no roll
+out(Arg, ["p2_rerolldice", "room_pid", Pid, "p2_uid", Player2_uid, "dice_pos",DicePos1flag,DicePos2flag,DicePos3flag,DicePos4flag,DicePos5flag]) -> 
+    io:format("p2 reroll. ~n",[]),
+    ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
+    player2_reroll(list_to_pid(Pid),Player2_uid,ReRollDicePosList),
+    receive
+        {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise} ->
+            ResultJsonStr = mochijson2:encode({struct, [{rolled_dice,NewSortedActualDice},{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+            {html, ResultJsonStr}
     end.
-
-
 

@@ -20,6 +20,9 @@ http://.../gameroom/makecall/room_pid/%3C0.3680.0%3E/p1_uid/11/call/2/2/9/9/9/ra
 p2 receive p1 call
 http://.../gameroom/get_p1_call/room_pid/%3C0.3699.0%3E/p2_uid/22
 
+pw reroll dice
+"1" means dice pos need reroll, in this case, dice at pos 3 and 5 needs reroll
+http://.../gameroom/p2_rerolldice/room_pid/%3C0.3699.0%3E/p2_uid/22/dice_pos/0/0/1/0/1
 
 At any time, any player can make this call to check the current room state to see if it is his turn.
 http://.../gameroom/check/room_pid/%3C0.6945.0%3E
