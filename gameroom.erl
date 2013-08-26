@@ -149,14 +149,15 @@ wait_for_p1_rolldice() ->
             Dice5_value = 3,
 
             %sort the dice from low to high
-            [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
+            %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
+            SortedActualDice = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
 
-            io:format("p1 roll dice: ~w,~w,~w,~w,~w ~n",[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]),
-            FromPid ! {dice_result,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value},
-            wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,BuyIn)
+            io:format("p1 roll dice: ~w ~n",[SortedActualDice]),
+            FromPid ! {dice_result,SortedActualDice},
+            wait_for_p1_makecall(SortedActualDice,BuyIn)
     end.
 
-wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn) ->
+wait_for_p1_makecall(SortedActualDice,P1BuyIn) ->
     receive
         {check, FromPid} -> 
             FromPid ! "p1_makecall";
@@ -179,18 +180,18 @@ io:format("make call ~w~n",[SortedCallDice]),
             case IsValid of 
                 false ->
                     FromPid ! invalid_call,
-                    wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn);
+                    wait_for_p1_makecall(SortedActualDice,P1BuyIn);
                 _ ->
 io:format("dice score ~w~n",[IsValid]),
                     FromPid ! valid_call,
-                    wait_for_p2_findcall(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise)
+                    wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise)
             end;
         _ -> 
             io:format("whatt!! ~n",[])
             
     end.
 
-wait_for_p2_findcall(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise) ->
+wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise) ->
     io:format("wait for p2 find call~n",[]),
     receive
         {check, FromPid} -> 
@@ -200,7 +201,7 @@ wait_for_p2_findcall(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice
 io:format("p2_findcall 1 ~n",[]),
             FromPid ! {"p1_calldice", SortedCallDice, "p1_buyin",P1BuyIn, "p1_raise",P1Raise},
 io:format("p2_findcall 2 ~n",[]),
-            wait_for_p2_trust_or_not(SortedCallDice,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value],P1BuyIn,P1Raise)
+            wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise)
     end.
 
 %append wildcard "9" to fill up the list to lenght 5.
@@ -302,11 +303,15 @@ io:format("wait_for_p2_pick_dice_to_roll ~n"),
             NewSortedActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
 io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
             FromPid ! {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet},
-            wait_for_p2_call()
+            wait_for_p2_call(SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet)
     end.
 
-wait_for_p2_call() ->
+wait_for_p2_call(SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet) ->
+    io:format("wait_for_p2_call~n"),
     receive
+        {p2_call,Player2_uid,FromPid,P2SortedCallDice} ->
+            %if the new call is "smaller" than the previous call -> error
+            true; 
         true -> 1
     end.
 
@@ -318,6 +323,12 @@ player1_rolldice(Pid,Player1_uid,BuyIn) ->
 
 player1_makecall(Pid,Player1_uid,D1,D2,D3,D4,D5,P1Raise) -> 
     Pid ! {p1_call,Player1_uid,self(),D1,D2,D3,D4,D5,p1_raise,list_to_integer(P1Raise)},
+    receive
+        valid_call -> valid_call;
+        invalid_call -> invalid_call
+    end.
+player2_makecall(Pid,Player2_uid,D1,D2,D3,D4,D5,P2Raise) -> 
+    Pid ! {p2_call,Player2_uid,self(),D1,D2,D3,D4,D5,p2_raise,list_to_integer(P2Raise)},
     receive
         valid_call -> valid_call;
         invalid_call -> invalid_call
@@ -360,9 +371,9 @@ out(Arg, ["rolldice", "room_pid", Pid, "p1_uid", Player1_uid,"buy_in", BuyIn]) -
     io:format("!rolldice. ~n",[]),
     player1_rolldice(list_to_pid(Pid),Player1_uid,BuyIn),
     receive
-        {dice_result,Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value} ->
+        {dice_result,DiceList} ->
             %build dice result json.
-            DiceResultJson = {dice_result,[Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]},
+            DiceResultJson = {dice_result,DiceList},
             DiceResultJsonStr = mochijson2:encode({struct, [DiceResultJson]}),
             {html, DiceResultJsonStr}
     end;
@@ -426,8 +437,20 @@ out(Arg, ["p2_rerolldice", "room_pid", Pid, "p2_uid", Player2_uid, "dice_pos",Di
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player2_reroll(list_to_pid(Pid),Player2_uid,ReRollDicePosList),
     receive
-        {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise} ->
-            ResultJsonStr = mochijson2:encode({struct, [{rolled_dice,NewSortedActualDice},{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+        {p2_dicerolled,SortedCallDice,NewSortedActualDice,P1BuyIn,P1Raise,P2Bet} ->
+io:format("p2_dicerolled~n"),
+            ResultJsonStr = mochijson2:encode({struct, [{rolled_dice,NewSortedActualDice},{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise},{p2_bet,P2Bet}]}),
             {html, ResultJsonStr}
-    end.
+    end;
+
+out(Arg, ["makecall", "room_pid", Pid, "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P2Raise]) -> 
+    io:format("p2 make call. ~n",[]),
+    [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
+    ValidCall = player2_makecall(list_to_pid(Pid),Player2_uid,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P2Raise),
+    Response = [ {code,ValidCall}  ],
+    Output = mochijson2:encode({struct, Response}),
+    {html, Output}.
+
+
+
 
