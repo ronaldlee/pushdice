@@ -2,7 +2,7 @@
 -include("/home/ubuntu/yaws/include/yaws_api.hrl").
 -compile(export_all).
 
-getDiceScoreInt(DiceList) ->
+getDiceScore(DiceList) ->
 io:format("get score int dice list: ~w~n",[DiceList]),
     case DiceList of 
 	%{"1","2","3","4","5"} -> io:format("match 1 ~n",[]), true;
@@ -105,107 +105,6 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	_ -> false
     end.
 
-getDiceScore(P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5) ->
-    case {P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5} of 
-	%{"1","2","3","4","5"} -> io:format("match 1 ~n",[]), true;
-	%{"2","3","4","5","6"} -> io:format("match 2 ~n",[]), true;
-
-	{"1","1","1","1","1"} -> io:format("match 3 ~n",[]), 79;
-	{"6","6","6","6","6"} -> io:format("match 8 ~n",[]), 78;
-	{"5","5","5","5","5"} -> io:format("match 7 ~n",[]), 77;
-	{"4","4","4","4","4"} -> io:format("match 6 ~n",[]), 76;
-	{"3","3","3","3","3"} -> io:format("match 5 ~n",[]), 75;
-	{"2","2","2","2","2"} -> io:format("match 4 ~n",[]), 74;
-
-	{"1","1","1","1",_} -> io:format("match 11~n",[]), 73;
-	{"6","6","6","6",_} -> io:format("match 16~n",[]), 72;
-	{"5","5","5","5",_} -> io:format("match 15~n",[]), 71;
-	{"4","4","4","4",_} -> io:format("match 14~n",[]), 70;
-	{"3","3","3","3",_} -> io:format("match 13~n",[]), 69;
-	{"2","2","2","2",_} -> io:format("match 12~n",[]), 68;
-
-	{"1","1","1","6","6"} -> io:format("match 3 ~n",[]), 67;
-	{"1","1","1","5","5"} -> io:format("match 3 ~n",[]), 66;
-	{"1","1","1","4","4"} -> io:format("match 3 ~n",[]), 65;
-	{"1","1","1","3","3"} -> io:format("match 3 ~n",[]), 64;
-	{"1","1","1","2","2"} -> io:format("match 3 ~n",[]), 63;
-
-	{"2","2","2","1","1"} -> io:format("match 3 ~n",[]), 62;
-	{"2","2","2","6","6"} -> io:format("match 3 ~n",[]), 61;
-	{"2","2","2","5","5"} -> io:format("match 3 ~n",[]), 60;
-	{"2","2","2","4","4"} -> io:format("match 3 ~n",[]), 59;
-	{"2","2","2","3","3"} -> io:format("match 3 ~n",[]), 58;
-
-	{"3","3","3","1","1"} -> io:format("match 3 ~n",[]), 57;
-	{"3","3","3","6","6"} -> io:format("match 3 ~n",[]), 56;
-	{"3","3","3","5","5"} -> io:format("match 3 ~n",[]), 55;
-	{"3","3","3","4","4"} -> io:format("match 3 ~n",[]), 54;
-	{"3","3","3","2","2"} -> io:format("match 3 ~n",[]), 53;
-
-	{"4","4","4","1","1"} -> io:format("match 3 ~n",[]), 52;
-	{"4","4","4","6","6"} -> io:format("match 3 ~n",[]), 51;
-	{"4","4","4","5","5"} -> io:format("match 3 ~n",[]), 50;
-	{"4","4","4","3","3"} -> io:format("match 3 ~n",[]), 49;
-	{"4","4","4","2","2"} -> io:format("match 3 ~n",[]), 48;
-
-	{"5","5","5","1","1"} -> io:format("match 3 ~n",[]), 47;
-	{"5","5","5","6","6"} -> io:format("match 3 ~n",[]), 46;
-	{"5","5","5","4","4"} -> io:format("match 3 ~n",[]), 45;
-	{"5","5","5","3","3"} -> io:format("match 3 ~n",[]), 44;
-	{"5","5","5","2","2"} -> io:format("match 3 ~n",[]), 43;
-
-	{"6","6","6","1","1"} -> io:format("match 3 ~n",[]), 42;
-	{"6","6","6","5","5"} -> io:format("match 3 ~n",[]), 41;
-	{"6","6","6","4","4"} -> io:format("match 3 ~n",[]), 40;
-	{"6","6","6","3","3"} -> io:format("match 3 ~n",[]), 39;
-	{"6","6","6","2","2"} -> io:format("match 3 ~n",[]), 38;
-
-	{"1","1","6","6",_} -> io:format("match 22~n",[]), 37;
-	{"1","1","5","5",_} -> io:format("match 21~n",[]), 36;
-	{"1","1","4","4",_} -> io:format("match 19~n",[]), 35;
-	{"1","1","3","3",_} -> io:format("match 18~n",[]), 34;
-	{"1","1","2","2",_} -> io:format("match 17~n",[]), 33;
-
-	{"2","2","1","1",_} -> io:format("match 23~n",[]), 32;
-	{"2","2","6","6",_} -> io:format("match 26~n",[]), 31;
-	{"2","2","5","5",_} -> io:format("match 25~n",[]), 30;
-	{"2","2","4","4",_} -> io:format("match 24~n",[]), 29;
-	{"2","2","3","3",_} -> io:format("match 23~n",[]), 28;
-
-	{"3","3","1","1",_} -> io:format("match 27~n",[]), 27;
-	{"3","3","6","6",_} -> io:format("match 29~n",[]), 26;
-	{"3","3","5","5",_} -> io:format("match 28~n",[]), 25;
-	{"3","3","4","4",_} -> io:format("match 27~n",[]), 24;
-	{"3","3","2","2",_} -> io:format("match 27~n",[]), 23;
-
-	{"4","4","1","1",_} -> io:format("match 31~n",[]), 22;
-	{"4","4","6","6",_} -> io:format("match 32~n",[]), 21;
-	{"4","4","5","5",_} -> io:format("match 31~n",[]), 20;
-	{"4","4","3","3",_} -> io:format("match 31~n",[]), 19;
-	{"4","4","2","2",_} -> io:format("match 31~n",[]), 18;
-
-	{"5","5","1","1",_} -> io:format("match 33~n",[]), 17;
-	{"5","5","6","6",_} -> io:format("match 33~n",[]), 16;
-	{"5","5","4","4",_} -> io:format("match 33~n",[]), 15;
-	{"5","5","3","3",_} -> io:format("match 33~n",[]), 14;
-	{"5","5","2","2",_} -> io:format("match 33~n",[]), 13;
-
-	{"1","1","1",_,_} -> io:format("match 34~n",[]), 12;
-	{"6","6","6",_,_} -> io:format("match 39~n",[]), 11;
-	{"5","5","5",_,_} -> io:format("match 38~n",[]), 10;
-	{"4","4","4",_,_} -> io:format("match 37~n",[]), 9;
-	{"3","3","3",_,_} -> io:format("match 36~n",[]), 8;
-	{"2","2","2",_,_} -> io:format("match 35~n",[]), 7;
-
-	{"1","1",_,_,_} -> io:format("match 41~n",[]), 6;
-	{"6","6",_,_,_} -> io:format("match 46~n",[]), 5;
-	{"5","5",_,_,_} -> io:format("match 45~n",[]), 4;
-	{"4","4",_,_,_} -> io:format("match 44~n",[]), 3;
-	{"3","3",_,_,_} -> io:format("match 43~n",[]), 2;
-	{"2","2",_,_,_} -> io:format("match 42~n",[]), 1;
-
-	_ -> false
-    end.
 
 start(Player1_uid,Player2_uid) ->
     io:format("start. ~n",[]),
@@ -236,11 +135,17 @@ wait_for_p1_rolldice() ->
         %check if p1 has enough to make the blind first
             io:format("p1 roll dice ~n",[]),
             random:seed(now()),
-            Dice1_value = random:uniform(6),
-            Dice2_value = random:uniform(6),
-            Dice3_value = random:uniform(6),
-            Dice4_value = random:uniform(6),
-            Dice5_value = random:uniform(6),
+            %Dice1_value = random:uniform(6),
+            %Dice2_value = random:uniform(6),
+            %Dice3_value = random:uniform(6),
+            %Dice4_value = random:uniform(6),
+            %Dice5_value = random:uniform(6),
+
+            Dice1_value = 3,
+            Dice2_value = 1,
+            Dice3_value = 2,
+            Dice4_value = 2,
+            Dice5_value = 3,
 
             %sort the dice from low to high
             [SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
@@ -269,15 +174,7 @@ wait_for_p1_makecall(SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_
 %%%%%% Need to check if the call is valid!!!  %%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 io:format("make call ~w~n",[SortedCallDice]),
-            %P1Dice_int = io_lib:format('~s',[P1Dice1]),
-            %P2Dice_int = io_lib:format('~s',[P1Dice2]),
-            %P3Dice_int = io_lib:format('~s',[P1Dice3]),
-            %P4Dice_int = io_lib:format('~s',[P1Dice4]),
-            %P5Dice_int = io_lib:format('~s',[P1Dice5]),
-%io:format("make call a ~w~n",[{P1Dice_int,P2Dice_int,P3Dice_int,P4Dice_int,P5Dice_int}]),
-            %IsValid = case {P1Dice_int,P2Dice_int,P3Dice_int,P4Dice_int,P5Dice_int} of 
-            %IsValid = getDiceScore(P1Dice1,P1Dice2,P1Dice3,P1Dice4,P1Dice5),
-            IsValid = getDiceScoreInt(SortedCallDice),
+            IsValid = getDiceScore(SortedCallDice),
             case IsValid of 
                 false ->
                     FromPid ! invalid_call,
@@ -305,6 +202,13 @@ io:format("p2_findcall 2 ~n",[]),
             wait_for_p2_trust_or_not(SortedCallDice,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value],P1BuyIn,P1Raise)
     end.
 
+%append wildcard "9" to fill up the list to lenght 5.
+appendWildCardToList(TargetList,0) -> TargetList;
+appendWildCardToList(TargetList,Count) -> 
+    NewTargetList = lists:append(TargetList,[9]),
+    NewCount = Count - 1,
+    appendWildCardToList(NewTargetList,NewCount).
+
 
 %wait_for_p2_trust_or_not(SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise) ->
 wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise) ->
@@ -328,25 +232,23 @@ io:format("trust 2! ~w ~n",[P1TotalBet]),
                     wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,P2Bet)
             end;
         {p2_not_trust,Player2_uid,FromPid,bet,P2Bet} ->
-            io:format("p2 not trust, check p1 call and actual! ~n"),
+            io:format("p2 not trust, check p1 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
             %if p1 actual result not match the dice comb call by p1, p2 win. else p2 lose
 
-%fffffff
-            ConvertFun = fun([X]) -> 
-                DiceInt = list_to_integer([X]), 
-                case DiceInt of
-                    9 -> "_";
-                    true -> DiceInt
-                end
-            end,
-            CallDiceConverted = lists:map(ConvertFun, SortedCallDice),
-io:format("call dice: ~w~n",[CallDiceConverted]),
-io:format("actu dice: ~w~n",[SortedActualDice]),
+            SubtractedList =  SortedActualDice -- SortedCallDice,
+            io:format("p2 not trust, SubtractedList: ~w ~n",[SubtractedList]),
 
-            %{CallD1,CallD2,CallD3,CallD4,CallD5} = CallDiceConverted,
-            %io:format("p2 not trust 1 ~n"),
+            SubtractedSortedActualDice = SortedActualDice -- SubtractedList,
+            io:format("p2 not trust, SubtractedSortedActualDice: ~w ~n",[SubtractedSortedActualDice]),
 
-            IsActualMatchCall = case SortedActualDice of 
+            %append 9 at end to fill up the list to length 5
+            AppendCount  = 5 - length(SubtractedSortedActualDice),
+            io:format("p2 not trust, AppendCount: ~w ~n",[AppendCount]),
+    
+            MatchDiceList = appendWildCardToList(SubtractedSortedActualDice,AppendCount),
+            io:format("p2 not trust, MatchDiceList: ~w ~n",[MatchDiceList]),
+
+            IsActualMatchCall = case MatchDiceList of 
                 CallDiceConverted -> true;
                 _ -> false        
             end,
@@ -453,10 +355,8 @@ out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) ->
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
         {"p1_calldice", SortedCallDice, "p1_buyin", P1BuyIn, "p1_raise", P1Raise} ->
-            %ConvertFun = fun([X]) -> list_to_binary([X]) end,
-            ConvertFun = fun([X]) -> list_to_integer([X]) end,
-            CallDiceConverted = lists:map(ConvertFun, SortedCallDice),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,CallDiceConverted},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+    io:format("p1_calldice. ~n",[]),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,SortedCallDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
     end;
 
@@ -466,9 +366,7 @@ out(Arg, ["p2_trust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]) -
     receive
         {p1_dice,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
 io:format("p2 trust get actual p1 call~n"),
-            ConvertFun = fun([X]) -> list_to_integer([X]) end,
-            CallDiceConverted = lists:map(ConvertFun, SortedCallDice),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,CallDiceConverted},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
     end;
 
@@ -477,14 +375,10 @@ out(Arg, ["p2_nottrust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]
     player2_nottrustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
         {p2_lose,SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise} ->
-            ConvertFun = fun([X]) -> list_to_integer([X]) end,
-            CallDiceConverted = lists:map(ConvertFun, SortedCallDice),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_lose'},{p1_call,CallDiceConverted},{p1_actual,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_lose'},{p1_call,SortedCallDice},{p1_actual,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr};
         {p2_win,SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise} ->
-            ConvertFun = fun([X]) -> list_to_integer([X]) end,
-            CallDiceConverted = lists:map(ConvertFun, SortedCallDice),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_win'},{p1_call,CallDiceConverted},{p1_actual,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_win'},{p1_call,SortedCallDice},{p1_actual,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
     end.
 

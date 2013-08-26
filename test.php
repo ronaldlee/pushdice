@@ -31,13 +31,10 @@ echo "p2 receive p1: $result \n";
 $json = json_decode($result,true);
 
 
-/*
 //p2 not trust
 $result = file_get_contents("http://54.213.19.254/gameroom/p2_nottrust/room_pid/$pid/p2_uid/22/p2_bet/10");
 echo "p2 not trust: $result \n";
 $json = json_decode($result,true);
-*/
-
 
 
 //p2 trust
