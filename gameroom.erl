@@ -8,99 +8,99 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	%{"1","2","3","4","5"} -> io:format("match 1 ~n",[]), true;
 	%{"2","3","4","5","6"} -> io:format("match 2 ~n",[]), true;
 
-	[1,1,1,1,1] -> io:format("match 3 ~n",[]), 79;
-	[6,6,6,6,6] -> io:format("match 8 ~n",[]), 78;
-	[5,5,5,5,5] -> io:format("match 7 ~n",[]), 77;
-	[4,4,4,4,4] -> io:format("match 6 ~n",[]), 76;
-	[3,3,3,3,3] -> io:format("match 5 ~n",[]), 75;
-	[2,2,2,2,2] -> io:format("match 4 ~n",[]), 74;
+	[1,1,1,1,1] -> 79;
+	[6,6,6,6,6] -> 78;
+	[5,5,5,5,5] -> 77;
+	[4,4,4,4,4] -> 76;
+	[3,3,3,3,3] -> 75;
+	[2,2,2,2,2] -> 74;
 
-	[1,1,1,1,_] -> io:format("match 11~n",[]), 73;
-	[6,6,6,6,_] -> io:format("match 16~n",[]), 72;
-	[5,5,5,5,_] -> io:format("match 15~n",[]), 71;
-	[4,4,4,4,_] -> io:format("match 14~n",[]), 70;
-	[3,3,3,3,_] -> io:format("match 13~n",[]), 69;
-	[2,2,2,2,_] -> io:format("match 12~n",[]), 68;
+	[1,1,1,1,_] -> 73;
+	[6,6,6,6,_] -> 72;
+	[5,5,5,5,_] -> 71;
+	[4,4,4,4,_] -> 70;
+	[3,3,3,3,_] -> 69;
+	[2,2,2,2,_] -> 68;
 
-	[1,1,1,6,6] -> io:format("match 3 ~n",[]), 67;
-	[1,1,1,5,5] -> io:format("match 3 ~n",[]), 66;
-	[1,1,1,4,4] -> io:format("match 3 ~n",[]), 65;
-	[1,1,1,3,3] -> io:format("match 3 ~n",[]), 64;
-	[1,1,1,2,2] -> io:format("match 3 ~n",[]), 63;
+	[1,1,1,6,6] -> 67;
+	[1,1,1,5,5] -> 66;
+	[1,1,1,4,4] -> 65;
+	[1,1,1,3,3] -> 64;
+	[1,1,1,2,2] -> 63;
 
-	[2,2,2,1,1] -> io:format("match 3 ~n",[]), 62;
-	[2,2,2,6,6] -> io:format("match 3 ~n",[]), 61;
-	[2,2,2,5,5] -> io:format("match 3 ~n",[]), 60;
-	[2,2,2,4,4] -> io:format("match 3 ~n",[]), 59;
-	[2,2,2,3,3] -> io:format("match 3 ~n",[]), 58;
+	[2,2,2,1,1] -> 62;
+	[2,2,2,6,6] -> 61;
+	[2,2,2,5,5] -> 60;
+	[2,2,2,4,4] -> 59;
+	[2,2,2,3,3] -> 58;
 
-	[3,3,3,1,1] -> io:format("match 3 ~n",[]), 57;
-	[3,3,3,6,6] -> io:format("match 3 ~n",[]), 56;
-	[3,3,3,5,5] -> io:format("match 3 ~n",[]), 55;
-	[3,3,3,4,4] -> io:format("match 3 ~n",[]), 54;
-	[3,3,3,2,2] -> io:format("match 3 ~n",[]), 53;
+	[3,3,3,1,1] -> 57;
+	[3,3,3,6,6] -> 56;
+	[3,3,3,5,5] -> 55;
+	[3,3,3,4,4] -> 54;
+	[3,3,3,2,2] -> 53;
 
-	[4,4,4,1,1] -> io:format("match 3 ~n",[]), 52;
-	[4,4,4,6,6] -> io:format("match 3 ~n",[]), 51;
-	[4,4,4,5,5] -> io:format("match 3 ~n",[]), 50;
-	[4,4,4,3,3] -> io:format("match 3 ~n",[]), 49;
-	[4,4,4,2,2] -> io:format("match 3 ~n",[]), 48;
+	[4,4,4,1,1] -> 52;
+	[4,4,4,6,6] -> 51;
+	[4,4,4,5,5] -> 50;
+	[4,4,4,3,3] -> 49;
+	[4,4,4,2,2] -> 48;
 
-	[5,5,5,1,1] -> io:format("match 3 ~n",[]), 47;
-	[5,5,5,6,6] -> io:format("match 3 ~n",[]), 46;
-	[5,5,5,4,4] -> io:format("match 3 ~n",[]), 45;
-	[5,5,5,3,3] -> io:format("match 3 ~n",[]), 44;
-	[5,5,5,2,2] -> io:format("match 3 ~n",[]), 43;
+	[5,5,5,1,1] -> 47;
+	[5,5,5,6,6] -> 46;
+	[5,5,5,4,4] -> 45;
+	[5,5,5,3,3] -> 44;
+	[5,5,5,2,2] -> 43;
 
-	[6,6,6,1,1] -> io:format("match 3 ~n",[]), 42;
-	[6,6,6,5,5] -> io:format("match 3 ~n",[]), 41;
-	[6,6,6,4,4] -> io:format("match 3 ~n",[]), 40;
-	[6,6,6,3,3] -> io:format("match 3 ~n",[]), 39;
-	[6,6,6,2,2] -> io:format("match 3 ~n",[]), 38;
+	[6,6,6,1,1] -> 42;
+	[6,6,6,5,5] -> 41;
+	[6,6,6,4,4] -> 40;
+	[6,6,6,3,3] -> 39;
+	[6,6,6,2,2] -> 38;
 
-	[1,1,6,6,_] -> io:format("match 22~n",[]), 37;
-	[1,1,5,5,_] -> io:format("match 21~n",[]), 36;
-	[1,1,4,4,_] -> io:format("match 19~n",[]), 35;
-	[1,1,3,3,_] -> io:format("match 18~n",[]), 34;
-	[1,1,2,2,_] -> io:format("match 17~n",[]), 33;
+	[1,1,6,6,_] -> 37;
+	[1,1,5,5,_] -> 36;
+	[1,1,4,4,_] -> 35;
+	[1,1,3,3,_] -> 34;
+	[1,1,2,2,_] -> 33;
 
-	[2,2,1,1,_] -> io:format("match 23~n",[]), 32;
-	[2,2,6,6,_] -> io:format("match 26~n",[]), 31;
-	[2,2,5,5,_] -> io:format("match 25~n",[]), 30;
-	[2,2,4,4,_] -> io:format("match 24~n",[]), 29;
-	[2,2,3,3,_] -> io:format("match 23~n",[]), 28;
+	[2,2,1,1,_] -> 32;
+	[2,2,6,6,_] -> 31;
+	[2,2,5,5,_] -> 30;
+	[2,2,4,4,_] -> 29;
+	[2,2,3,3,_] -> 28;
 
-	[3,3,1,1,_] -> io:format("match 27~n",[]), 27;
-	[3,3,6,6,_] -> io:format("match 29~n",[]), 26;
-	[3,3,5,5,_] -> io:format("match 28~n",[]), 25;
-	[3,3,4,4,_] -> io:format("match 27~n",[]), 24;
-	[3,3,2,2,_] -> io:format("match 27~n",[]), 23;
+	[3,3,1,1,_] -> 27;
+	[3,3,6,6,_] -> 26;
+	[3,3,5,5,_] -> 25;
+	[3,3,4,4,_] -> 24;
+	[3,3,2,2,_] -> 23;
 
-	[4,4,1,1,_] -> io:format("match 31~n",[]), 22;
-	[4,4,6,6,_] -> io:format("match 32~n",[]), 21;
-	[4,4,5,5,_] -> io:format("match 31~n",[]), 20;
-	[4,4,3,3,_] -> io:format("match 31~n",[]), 19;
-	[4,4,2,2,_] -> io:format("match 31~n",[]), 18;
+	[4,4,1,1,_] -> 22;
+	[4,4,6,6,_] -> 21;
+	[4,4,5,5,_] -> 20;
+	[4,4,3,3,_] -> 19;
+	[4,4,2,2,_] -> 18;
 
-	[5,5,1,1,_] -> io:format("match 33~n",[]), 17;
-	[5,5,6,6,_] -> io:format("match 33~n",[]), 16;
-	[5,5,4,4,_] -> io:format("match 33~n",[]), 15;
-	[5,5,3,3,_] -> io:format("match 33~n",[]), 14;
-	[5,5,2,2,_] -> io:format("match 33~n",[]), 13;
+	[5,5,1,1,_] -> 17;
+	[5,5,6,6,_] -> 16;
+	[5,5,4,4,_] -> 15;
+	[5,5,3,3,_] -> 14;
+	[5,5,2,2,_] -> 13;
 
-	[1,1,1,_,_] -> io:format("match 34~n",[]), 12;
-	[6,6,6,_,_] -> io:format("match 39~n",[]), 11;
-	[5,5,5,_,_] -> io:format("match 38~n",[]), 10;
-	[4,4,4,_,_] -> io:format("match 37~n",[]), 9;
-	[3,3,3,_,_] -> io:format("match 36~n",[]), 8;
-	[2,2,2,_,_] -> io:format("match 35~n",[]), 7;
+	[1,1,1,_,_] -> 12;
+	[6,6,6,_,_] -> 11;
+	[5,5,5,_,_] -> 10;
+	[4,4,4,_,_] -> 9;
+	[3,3,3,_,_] -> 8;
+	[2,2,2,_,_] -> 7;
 
-	[1,1,_,_,_] -> io:format("match 41~n",[]), 6;
-	[6,6,_,_,_] -> io:format("match 46~n",[]), 5;
-	[5,5,_,_,_] -> io:format("match 45~n",[]), 4;
-	[4,4,_,_,_] -> io:format("match 44~n",[]), 3;
-	[3,3,_,_,_] -> io:format("match 43~n",[]), 2;
-	[2,2,_,_,_] -> io:format("match 42~n",[]), 1;
+	[1,1,_,_,_] -> 6;
+	[6,6,_,_,_] -> 5;
+	[5,5,_,_,_] -> 4;
+	[4,4,_,_,_] -> 3;
+	[3,3,_,_,_] -> 2;
+	[2,2,_,_,_] -> 1;
 
 	_ -> false
     end.
@@ -256,12 +256,12 @@ io:format("trust 2! ~w ~n",[P1TotalBet]),
 
             if 
                 (IsActualMatchCall) -> 
-                    io:format("p1 call match actual! ~n"),
-                    FromPid ! {p2_lose,SortedCallDice,SortedActualDice},
+                    io:format("p1 call match actual! p2 lose.. ~n"),
+                    FromPid ! {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise},
                     game_over();
                 true ->
-                    io:format("p1 call NOT match actual! ~n"),
-                    FromPid ! {p2_win,SortedCallDice,SortedActualDice},
+                    io:format("p1 call NOT match actual! p2 win.. ~n"),
+                    FromPid ! {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise},
                     game_over()
             end
     end.
@@ -374,11 +374,11 @@ out(Arg, ["p2_nottrust", "room_pid", Pid, "p2_uid", Player2_uid, "p2_bet",P2Bet]
     io:format("p2 not trust. ~n",[]),
     player2_nottrustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
-        {p2_lose,SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise} ->
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_lose'},{p1_call,SortedCallDice},{p1_actual,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+        {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_lose'},{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr};
-        {p2_win,SortedCallDice,SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value,P1BuyIn,P1Raise} ->
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_win'},{p1_call,SortedCallDice},{p1_actual,[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value]},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
+        {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,P1Raise} ->
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{gameover,'p2_win'},{p1_call,SortedCallDice},{p1_actual,SortedActualDice},{p1_buyin,P1BuyIn},{p1_raise,P1Raise}]}),
             {html, P1DiceResultJsonStr}
     end.
 
