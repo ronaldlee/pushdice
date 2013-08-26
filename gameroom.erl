@@ -246,10 +246,10 @@ io:format("trust 2! ~w ~n",[P1TotalBet]),
             io:format("p2 not trust, AppendCount: ~w ~n",[AppendCount]),
     
             MatchDiceList = appendWildCardToList(SubtractedSortedActualDice,AppendCount),
-            io:format("p2 not trust, MatchDiceList: ~w ~n",[MatchDiceList]),
+            io:format("p2 not trust, MatchDiceList: ~w, SortedCallDice: ~w ~n",[MatchDiceList,SortedCallDice]),
 
             IsActualMatchCall = case MatchDiceList of 
-                CallDiceConverted -> true;
+                SortedCallDice -> true;
                 _ -> false        
             end,
             io:format("p2 not trust 2 ~n"),
