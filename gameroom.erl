@@ -161,29 +161,29 @@ wait_for_p1_rolldice() ->
 
             io:format("p1 roll dice: ~w ~n",[SortedActualDice]),
             FromPid ! {dice_result,SortedActualDice,BuyIn},
-            wait_for_p1_makecall(SortedActualDice,BuyIn,BuyIn)
+            wait_for_p1_makecall([],SortedActualDice,BuyIn,0,0,BuyIn)
     end.
 
-wait_for_p1_makecall(SortedActualDice,P1BuyIn,Pot) ->
+wait_for_p1_makecall(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) ->
     receive
         {check, FromPid} -> 
             FromPid ! [{state,"wait_for_p1_makecall"},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{pot,Pot}];
-        {p1_call,Player1_uid,FromPid,SortedCallDice,p1_raise,P1Raise} ->
+        {p1_call,Player1_uid,FromPid,P1SortedCallDice,p1_raise,P1Raise} ->
             io:format("make call aaa~n",[]),
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% Need to check if the call is valid!!!  %%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-io:format("make call ~w~n",[SortedCallDice]),
-            IsValid = getDiceScore(SortedCallDice),
+io:format("make call ~w~n",[P1SortedCallDice]),
+            IsValid = getDiceScore(P1SortedCallDice),
             case IsValid of 
                 false ->
                     FromPid ! {invalid_call,Pot},
-                    wait_for_p1_makecall(SortedActualDice,P1BuyIn,Pot);
+                    wait_for_p1_makecall(P1SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot);
                 _ ->
 io:format("dice score ~w~n",[IsValid]),
                     FromPid ! {valid_call,Pot},
                     NewPot = Pot+P1Raise,
-                    wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,NewPot)
+                    wait_for_p2_findcall(P1SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,NewPot)
             end;
         _ -> 
             io:format("whatt!! ~n",[])
@@ -432,6 +432,8 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
 wait_for_p1_call(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) ->
     io:format("wait_for_p1_call~n"),
     receive
+        {check, FromPid} ->
+            FromPid ! [{state,"wait_for_p1_call"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_buyin,P1BuyIn},{prev_raise,PrevRaise},{bet,Bet},{pot,Pot}];
         {p1_call,Player1_uid,FromPid,P1SortedCallDice,p1_raise,P1Raise} ->
 io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
             %if the new call is "smaller" than the previous call -> error
