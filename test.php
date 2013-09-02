@@ -95,7 +95,7 @@ $json = json_decode($result,true);
 $result = file_get_contents("http://54.213.19.254/gameroom/p2_trust/room_pid/$pid/p2_uid/22/bet/18");
 echo "p2 trust: $result \n";
 $json = json_decode($result,true);
-if (isset($json['invalid_bet'])) {
+if (isset($json['code']) && $json['code']=="invalid_bet") {
 exit;
 }
 
@@ -110,6 +110,11 @@ $raise=12;
 $result = file_get_contents("http://54.213.19.254/gameroom/call/room_pid/$pid/p2_uid/22/call/3/3/3/3/9/raise/$raise");
 echo "p2 make call: $result \n";
 $json = json_decode($result,true);
+
+$json = json_decode($result,true);
+if (isset($json['code']) && $json['code']=="invalid_call") {
+exit;
+}
 
 //p1 receive p2 call
 $result = file_get_contents("http://54.213.19.254/gameroom/get_p2_call/room_pid/$pid/p1_uid/11");

@@ -61,7 +61,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
 
      case SelectLength of 
        0 ->
-         InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,consecutive_days_played,last_play_date) values ('~s','~s','~s','~s','1',NULL)",[Username,Id,Type,AccessToken]),
+         InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,consecutive_days_played,coins,last_play_date) values ('~s','~s','~s','~s','1','1000',NULL)",[Username,Id,Type,AccessToken]),
          io:format("mysqlllll insert sql: ~s~n",[InsertSql]),
          InsertResult = emysql:execute(pushdice_pool, InsertSql),
          io:format("mysqlllll insert result: ~w~n",[InsertResult]),
