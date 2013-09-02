@@ -112,6 +112,114 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	_ -> false
     end.
 
+getDiceCombByScore(DiceScore) ->
+io:format("get dice comb by score: ~w~n",[DiceScore]),
+    case DiceScore of 
+	%{"1","2","3","4","5"} -> io:format("match 1 ~n",[]), true;
+	%{"2","3","4","5","6"} -> io:format("match 2 ~n",[]), true;
+
+	84->[1,1,1,1,1];
+	83->[6,6,6,6,6];
+	82->[5,5,5,5,5];
+	81->[4,4,4,4,4];
+	80->[3,3,3,3,3];
+	79->[2,2,2,2,2];
+
+	78->[1,1,1,1,9];
+	77->[6,6,6,6,9];
+	76->[5,5,5,5,9];
+	75->[4,4,4,4,9];
+	74->[3,3,3,3,9];
+	73->[2,2,2,2,9];
+
+	72->[1,1,1,6,6];
+	71->[1,1,1,5,5];
+	70->[1,1,1,4,4];
+	69->[1,1,1,3,3];
+	68->[1,1,1,2,2];
+
+	67->[6,6,6,1,1];
+	66->[6,6,6,5,5];
+	65->[6,6,6,4,4];
+	64->[6,6,6,3,3];
+	63->[6,6,6,2,2];
+
+	62->[5,5,5,1,1];
+	61->[5,5,5,6,6];
+	60->[5,5,5,4,4];
+	59->[5,5,5,3,3];
+	58->[5,5,5,2,2];
+
+	57->[4,4,4,1,1];
+	56->[4,4,4,6,6];
+	55->[4,4,4,5,5];
+	54->[4,4,4,3,3];
+	53->[4,4,4,2,2];
+
+	52->[3,3,3,1,1];
+	51->[3,3,3,6,6];
+	50->[3,3,3,5,5];
+	49->[3,3,3,4,4];
+	48->[3,3,3,2,2];
+
+	47->[2,2,2,1,1];
+	46->[2,2,2,6,6];
+	45->[2,2,2,5,5];
+	44->[2,2,2,4,4];
+	43->[2,2,2,3,3];
+
+	42->[1,1,6,6,9];
+	41->[1,1,5,5,9];
+	40->[1,1,4,4,9];
+	39->[1,1,3,3,9];
+	38->[1,1,2,2,9];
+
+	37->[6,6,1,1,9];
+	36->[6,6,5,5,9];
+	35->[6,6,4,4,9];
+	34->[6,6,3,3,9];
+	33->[6,6,2,2,9];
+
+	32->[5,5,1,1,9];
+	31->[5,5,6,6,9];
+	30->[5,5,4,4,9];
+	29->[5,5,3,3,9];
+	28->[5,5,2,2,9];
+
+	27->[4,4,1,1,9];
+	26->[4,4,6,6,9];
+	25->[4,4,5,5,9];
+	24->[4,4,3,3,9];
+	23->[4,4,2,2,9];
+
+	22->[3,3,1,1,9];
+	21->[3,3,6,6,9];
+	20->[3,3,5,5,9];
+	19->[3,3,4,4,9];
+	18->[3,3,2,2,9];
+
+	17->[2,2,1,1,9];
+	16->[2,2,6,6,9];
+	15->[2,2,5,5,9];
+	14->[2,2,4,4,9];
+	13->[2,2,3,3,9];
+
+	12->[1,1,1,9,9];
+	11->[6,6,6,9,9];
+	10->[5,5,5,9,9];
+	9->[4,4,4,9,9];
+	8->[3,3,3,9,9];
+	7->[2,2,2,9,9];
+
+	6->[1,1,9,9,9];
+	5->[6,6,9,9,9];
+	4->[5,5,9,9,9];
+	3->[4,4,9,9,9];
+	2->[3,3,9,9,9];
+	1->[2,2,9,9,9];
+
+	_ -> false 
+    end.
 
 start(Player1_uid,Player2_uid) ->
     io:format("start. ~n",[]),
@@ -198,7 +306,12 @@ wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot) ->
         {p2_findcall,Player2_uid,FromPid} ->
             %return p1 actual dice combination
 io:format("p2_findcall 1 ~n",[]),
-            FromPid ! {"p1_calldice", SortedCallDice, "p1_bind",P1BuyIn, "p1_raise",P1Raise,"pot",Pot},
+            %find the min dice combination
+            SortedCallDiceScore = getDiceScore(SortedCallDice),
+            MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
+io:format("p2_findcall min call:  ~w~n",[MinSortedCallDice]),
+
+            FromPid ! {"p1_calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1BuyIn, "p1_raise",P1Raise,"pot",Pot},
 io:format("p2_findcall 2 ~n",[]),
             wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1BuyIn+P1Raise,Pot)
     end.
@@ -211,7 +324,11 @@ wait_for_p1_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P2Raise,Pot) ->
         {p1_findcall,Player21uid,FromPid} ->
             %return p1 actual dice combination
 io:format("p1_findcall 1 ~n",[]),
-            FromPid ! {"p2_calldice", SortedCallDice, "p1_bind",P1BuyIn, "p2_raise",P2Raise,"pot",Pot},
+            SortedCallDiceScore = getDiceScore(SortedCallDice),
+            MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
+io:format("p1_findcall min call:  ~w~n",[MinSortedCallDice]),
+
+            FromPid ! {"p2_calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1BuyIn, "p2_raise",P2Raise,"pot",Pot},
 io:format("p1_findcall 2 ~n",[]),
             wait_for_p1_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P2Raise,Pot)
     end.
@@ -593,9 +710,9 @@ out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) ->
     io:format("p2 find out p1 call. ~n",[]),
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
-        {"p1_calldice", SortedCallDice, "p1_bind", P1BuyIn, "p1_raise", P1Raise,"pot",Pot} ->
+        {"p1_calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1BuyIn, "p1_raise", P1Raise,"pot",Pot} ->
     io:format("p1_calldice. ~n",[]),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{bind,P1BuyIn},{raise,P1Raise},{pot,Pot}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1BuyIn},{raise,P1Raise},{pot,Pot}]}),
             {html, P1DiceResultJsonStr}
     end;
 
@@ -603,9 +720,9 @@ out(Arg, ["get_p2_call", "room_pid", Pid, "p1_uid", Player1_uid]) ->
     io:format("p1 find out p2 call. ~n",[]),
     player1_findcall(list_to_pid(Pid),Player1_uid),
     receive
-        {"p2_calldice", SortedCallDice, "p1_bind", P1BuyIn, "p2_raise", P1Raise,"pot",Pot} ->
-    io:format("p1_calldice. ~n",[]),
-            P2DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{bind,P1BuyIn},{raise,P1Raise},{pot,Pot}]}),
+        {"p2_calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1BuyIn, "p2_raise", P1Raise,"pot",Pot} ->
+    io:format("p2_calldice. ~n",[]),
+            P2DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1BuyIn},{raise,P1Raise},{pot,Pot}]}),
             {html, P2DiceResultJsonStr}
     end;
 
