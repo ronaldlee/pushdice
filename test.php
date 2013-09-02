@@ -116,9 +116,21 @@ $result = file_get_contents("http://54.213.19.254/gameroom/get_p2_call/room_pid/
 echo "p1 receive p2: $result \n";
 $json = json_decode($result,true);
 
-//p2 not trust
+//p1 not trust
+/*
 $result = file_get_contents("http://54.213.19.254/gameroom/p1_nottrust/room_pid/$pid/p1_uid/11/bet/10");
 echo "p1 not trust: $result \n";
+$json = json_decode($result,true);
+*/
+
+//p1 trust
+$result = file_get_contents("http://54.213.19.254/gameroom/p1_trust/room_pid/$pid/p1_uid/11/bet/20");
+echo "p1 trust: $result \n";
+$json = json_decode($result,true);
+
+//p1 reroll dice
+$result = file_get_contents("http://54.213.19.254/gameroom/p1_rerolldice/room_pid/$pid/p1_uid/11/dice_pos/1/0/0/1/0");
+echo "p1 reroll: $result \n";
 $json = json_decode($result,true);
 
 ?>
