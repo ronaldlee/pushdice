@@ -291,7 +291,7 @@ io:format("make call ~w~n",[P1SortedCallDice]),
 io:format("dice score ~w~n",[IsValid]),
                     FromPid ! {valid_call,Pot},
                     NewPot = Pot+P1Raise,
-                    wait_for_p2_findcall(P1SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,NewPot)
+                    wait_for_p2_findcall(P1SortedCallDice,SortedActualDice,P1BuyIn,P1BuyIn+P1Raise,NewPot)
             end;
         _ -> 
             io:format("whatt!! ~n",[])
@@ -313,7 +313,7 @@ io:format("p2_findcall min call:  ~w~n",[MinSortedCallDice]),
 
             FromPid ! {"p1_calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1BuyIn, "p1_raise",P1Raise,"pot",Pot},
 io:format("p2_findcall 2 ~n",[]),
-            wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1BuyIn+P1Raise,Pot)
+            wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot)
     end.
 
 wait_for_p1_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P2Raise,Pot) ->
