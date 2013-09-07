@@ -257,15 +257,18 @@ wait_for_p1_rolldice() ->
             %Dice5_value = random:uniform(6),
 
             %for testing
-            Dice1_value = 3,
-            Dice2_value = 1,
-            Dice3_value = 2,
-            Dice4_value = 2,
-            Dice5_value = 3,
+            %Dice1_value = 3,
+            %Dice2_value = 1,
+            %Dice3_value = 2,
+            %Dice4_value = 2,
+            %Dice5_value = 3,
+            %NewActualDice = [Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value],
+
+            NewActualDice = rerollDice([1,1,1,1,1],[1,1,1,1,1],[]),
 
             %sort the dice from low to high
             %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
-            SortedActualDice = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
+            SortedActualDice = lists:sort(NewActualDice),
 
             io:format("p1 roll dice: ~w ~n",[SortedActualDice]),
             FromPid ! {dice_result,SortedActualDice,BuyIn},
@@ -363,38 +366,45 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                     wait_for_p2_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,NewPot)
             end;
         {p2_not_trust,Player2_uid,FromPid,bet,Bet} ->
-            io:format("p2 not trust, check p1 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
-            %if p1 actual result not match the dice comb call by p1, p2 win. else p2 lose
-
-            SubtractedList =  SortedActualDice -- SortedCallDice,
-            io:format("p2 not trust, SubtractedList: ~w ~n",[SubtractedList]),
-
-            SubtractedSortedActualDice = SortedActualDice -- SubtractedList,
-            io:format("p2 not trust, SubtractedSortedActualDice: ~w ~n",[SubtractedSortedActualDice]),
-
-            %append 9 at end to fill up the list to length 5
-            AppendCount  = 5 - length(SubtractedSortedActualDice),
-            io:format("p2 not trust, AppendCount: ~w ~n",[AppendCount]),
-    
-            MatchDiceList = appendWildCardToList(SubtractedSortedActualDice,AppendCount),
-            io:format("p2 not trust, MatchDiceList: ~w, SortedCallDice: ~w ~n",[MatchDiceList,SortedCallDice]),
-
-            IsActualMatchCall = case MatchDiceList of 
-                SortedCallDice -> true;
-                _ -> false        
-            end,
-            io:format("p2 not trust 2 ~n"),
-
-            if 
-                (IsActualMatchCall) -> 
-                    io:format("p1 call match actual! p2 lose.. ~n"),
-                    FromPid ! {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
-                    game_over();
+            if
+                (Bet < PrevRaise) ->
+                    io:format("p2 bad bet! ~n"),
+                    FromPid ! {p2_bad_bet,P1BuyIn,PrevRaise,Bet,Pot},
+                    wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot);
                 true ->
-                    io:format("p1 call NOT match actual! p2 win.. ~n"),
-                    %update p2 player's coin by adding pot
-                    FromPid ! {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
-                    game_over()
+                    io:format("p2 not trust, check p1 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
+                    %if p1 actual result not match the dice comb call by p1, p2 win. else p2 lose
+
+                    SubtractedList =  SortedActualDice -- SortedCallDice,
+                    io:format("p2 not trust, SubtractedList: ~w ~n",[SubtractedList]),
+
+                    SubtractedSortedActualDice = SortedActualDice -- SubtractedList,
+                    io:format("p2 not trust, SubtractedSortedActualDice: ~w ~n",[SubtractedSortedActualDice]),
+
+                    %append 9 at end to fill up the list to length 5
+                    AppendCount  = 5 - length(SubtractedSortedActualDice),
+                    io:format("p2 not trust, AppendCount: ~w ~n",[AppendCount]),
+    
+                    MatchDiceList = appendWildCardToList(SubtractedSortedActualDice,AppendCount),
+                    io:format("p2 not trust, MatchDiceList: ~w, SortedCallDice: ~w ~n",[MatchDiceList,SortedCallDice]),
+
+                    IsActualMatchCall = case MatchDiceList of 
+                        SortedCallDice -> true;
+                        _ -> false        
+                    end,
+                    io:format("p2 not trust 2 ~n"),
+
+                    if 
+                        (IsActualMatchCall) -> 
+                            io:format("p1 call match actual! p2 lose.. ~n"),
+                            FromPid ! {p2_lose,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
+                            game_over();
+                        true ->
+                            io:format("p1 call NOT match actual! p2 win.. ~n"),
+                            %update p2 player's coin by adding pot
+                            FromPid ! {p2_win,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
+                            game_over()
+                    end
             end
     end.
 
@@ -419,38 +429,45 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
                     wait_for_p1_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,NewPot)
             end;
         {p1_not_trust,Player1_uid,FromPid,bet,Bet} ->
-            io:format("p1 not trust, check p2 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
-            %if p2 actual result not match the dice comb call by p1, p2 win. else p2 lose
-
-            SubtractedList =  SortedActualDice -- SortedCallDice,
-            io:format("p1 not trust, SubtractedList: ~w ~n",[SubtractedList]),
-
-            SubtractedSortedActualDice = SortedActualDice -- SubtractedList,
-            io:format("p1 not trust, SubtractedSortedActualDice: ~w ~n",[SubtractedSortedActualDice]),
-
-            %append 9 at end to fill up the list to length 5
-            AppendCount  = 5 - length(SubtractedSortedActualDice),
-            io:format("p1 not trust, AppendCount: ~w ~n",[AppendCount]),
-    
-            MatchDiceList = appendWildCardToList(SubtractedSortedActualDice,AppendCount),
-            io:format("p1 not trust, MatchDiceList: ~w, SortedCallDice: ~w ~n",[MatchDiceList,SortedCallDice]),
-
-            IsActualMatchCall = case MatchDiceList of 
-                SortedCallDice -> true;
-                _ -> false        
-            end,
-            io:format("p1 not trust 2 ~n"),
-
-            if 
-                (IsActualMatchCall) -> 
-                    io:format("p2 call match actual! p1 lose.. ~n"),
-                    FromPid ! {p1_lose,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
-                    game_over();
+            if
+                (Bet < PrevRaise) ->
+                    io:format("p2 bad bet! ~n"),
+                    FromPid ! {p2_bad_bet,P1BuyIn,PrevRaise,Bet,Pot},
+                    wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot);
                 true ->
-                    io:format("p2 call NOT match actual! p1 win.. ~n"),
-                    %update p2 player's coin by adding pot
-                    FromPid ! {p1_win,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
-                    game_over()
+                    io:format("p1 not trust, check p2 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
+                    %if p2 actual result not match the dice comb call by p1, p2 win. else p2 lose
+
+                    SubtractedList =  SortedActualDice -- SortedCallDice,
+                    io:format("p1 not trust, SubtractedList: ~w ~n",[SubtractedList]),
+
+                    SubtractedSortedActualDice = SortedActualDice -- SubtractedList,
+                    io:format("p1 not trust, SubtractedSortedActualDice: ~w ~n",[SubtractedSortedActualDice]),
+
+                    %append 9 at end to fill up the list to length 5
+                    AppendCount  = 5 - length(SubtractedSortedActualDice),
+                    io:format("p1 not trust, AppendCount: ~w ~n",[AppendCount]),
+    
+                    MatchDiceList = appendWildCardToList(SubtractedSortedActualDice,AppendCount),
+                    io:format("p1 not trust, MatchDiceList: ~w, SortedCallDice: ~w ~n",[MatchDiceList,SortedCallDice]),
+
+                    IsActualMatchCall = case MatchDiceList of 
+                        SortedCallDice -> true;
+                        _ -> false        
+                    end,
+                    io:format("p1 not trust 2 ~n"),
+
+                    if 
+                        (IsActualMatchCall) -> 
+                            io:format("p2 call match actual! p1 lose.. ~n"),
+                            FromPid ! {p1_lose,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
+                            game_over();
+                        true ->
+                            io:format("p2 call NOT match actual! p1 win.. ~n"),
+                            %update p2 player's coin by adding pot
+                            FromPid ! {p1_win,SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Pot},
+                            game_over()
+                    end
             end
     end.
 

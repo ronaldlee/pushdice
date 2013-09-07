@@ -122,7 +122,7 @@ $json = json_decode($result,true);
 
 //p2 make call
 $raise=12;
-$result = file_get_contents("http://54.213.19.254/gameroom/call/room_pid/$pid/p2_uid/22/call/3/3/3/3/9/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/call/room_pid/$pid/p2_uid/22/call/4/4/4/4/9/raise/$raise");
 echo "p2 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
