@@ -228,6 +228,11 @@ start(Player1_uid,Player2_uid) ->
     io:format("start: pid: ~w~n",[Pid]),
     %% register(gameroom_proc, Pid),
     io:format("start. ~n",[]),
+
+    %add this game room to p1's init room list
+    RoomsSetKey = io_lib:format("gr_~s",[Player1_uid]),
+    {ok, C} = eredis:start_link(),
+    eredis:q(C, ["SET", RoomsSetKey, pid_to_list(Pid)]),
     Pid.
 
 init_gameroom(Player1_uid,Player2_uid) ->
@@ -236,6 +241,8 @@ init_gameroom(Player1_uid,Player2_uid) ->
             FromPid ! [{state,"init_gameroom"},{p1_uid,Player1_uid},{p2_uid,Player2_uid}];
         {join, Player2_uid} ->
             io:format("join. ~s~n",[Player2_uid]),
+
+            %add this game room to p2's join room list
             wait_for_p1_rolldice();
         {_ , Player2_uid} -> 
             io:format("player 2 can only join. ~n",[]),
@@ -307,15 +314,9 @@ wait_for_p2_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot) ->
         {check, FromPid} -> 
             FromPid ! [{state,"wait_for_findcall"},{p,2},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_bind,P1BuyIn},{p1_raise,P1Raise},{pot,Pot}];
         {p2,findcall,Player2_uid,FromPid} ->
-            %return p1 actual dice combination
-io:format("p2_findcall 1 ~n",[]),
-            %find the min dice combination
             SortedCallDiceScore = getDiceScore(SortedCallDice),
             MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
-io:format("p2_findcall min call:  ~w~n",[MinSortedCallDice]),
-
             FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1BuyIn, "raise",P1Raise,"pot",Pot},
-io:format("p2_findcall 2 ~n",[]),
             wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P1Raise,Pot)
     end.
 
@@ -325,14 +326,9 @@ wait_for_p1_findcall(SortedCallDice,SortedActualDice,P1BuyIn,P2Raise,Pot) ->
         {check, FromPid} -> 
             FromPid ! [{state,"wait_for_findcall"},{p,1},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_bind,P1BuyIn},{raise,P2Raise},{pot,Pot}];
         {p1,findcall,Player1uid,FromPid} ->
-            %return p1 actual dice combination
-io:format("p1_findcall 1 ~n",[]),
             SortedCallDiceScore = getDiceScore(SortedCallDice),
             MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
-io:format("p1_findcall min call:  ~w~n",[MinSortedCallDice]),
-
             FromPid ! {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1BuyIn, "raise",P2Raise,"pot",Pot},
-io:format("p1_findcall 2 ~n",[]),
             wait_for_p1_trust_or_not(SortedCallDice,SortedActualDice,P1BuyIn,P2Raise,Pot)
     end.
 
