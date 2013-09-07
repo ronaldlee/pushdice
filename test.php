@@ -162,4 +162,8 @@ $result = file_get_contents("http://54.213.19.254/gameroom/list/uid/11");
 echo "p1 rooms: $result \n";
 echo "\n";
 
+$result = file_get_contents("http://54.213.19.254/gameroom/list/uid/22");
+echo "p2 rooms: $result \n";
+echo "\n";
+
 ?>

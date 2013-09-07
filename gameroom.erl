@@ -229,10 +229,15 @@ start(Player1_uid,Player2_uid) ->
     %% register(gameroom_proc, Pid),
     io:format("start. ~n",[]),
 
-    %add this game room to p1's init room list
-    RoomsSetKey = io_lib:format("gr_~s",[Player1_uid]),
+    %add this game room to p1 and p2 rooms list
+    %gri -> gameroom-init
+    %grj -> gameroom-join
+    P1RoomsSetKey = io_lib:format("gri_~s",[Player1_uid]),
+    P2RoomsSetKey = io_lib:format("grj_~s",[Player2_uid]),
     {ok, C} = eredis:start_link(),
-    eredis:q(C, ["SADD", RoomsSetKey, pid_to_list(Pid)]),
+    eredis:q(C, ["SADD", P1RoomsSetKey, pid_to_list(Pid)]),
+    eredis:q(C, ["SADD", P2RoomsSetKey, pid_to_list(Pid)]),
+
     Pid.
 
 init_gameroom(Player1_uid,Player2_uid) ->
@@ -241,8 +246,6 @@ init_gameroom(Player1_uid,Player2_uid) ->
             FromPid ! [{state,"init_gameroom"},{p1_uid,Player1_uid},{p2_uid,Player2_uid}];
         {join, Player2_uid} ->
             io:format("join. ~s~n",[Player2_uid]),
-
-            %add this game room to p2's join room list
             wait_for_p1_rolldice();
         {_ , Player2_uid} -> 
             io:format("player 2 can only join. ~n",[]),
@@ -857,10 +860,17 @@ out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Ra
 
 out(Arg, ["list", "uid", Uid]) -> 
     io:format("list game rooms. ~n",[]),
-    RoomsSetKey = io_lib:format("gr_~s",[Uid]),
-    {ok, C} = eredis:start_link(),
-    {ok, Values} = eredis:q(C, ["SMEMBERS", RoomsSetKey]),
+    InitRoomsSetKey = io_lib:format("gri_~s",[Uid]),
+    JoinRoomsSetKey = io_lib:format("grj_~s",[Uid]),
 
-    Response = [ {rooms,Values} ],
+    {ok, C} = eredis:start_link(),
+    {ok, InitRooms} = eredis:q(C, ["SMEMBERS", InitRoomsSetKey]),
+    {ok, JoinRooms} = eredis:q(C, ["SMEMBERS", JoinRoomsSetKey]),
+
+    %for each room, call "check" to see whos turn
+    %if initroom list, p1 means your turn
+    %if joinroom list, p2 means your turn
+
+    Response = [ {init_rooms,InitRooms},{join_rooms,JoinRooms} ],
     Output = mochijson2:encode({struct, Response}),
     {html, Output}.
