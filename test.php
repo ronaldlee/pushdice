@@ -157,4 +157,9 @@ echo "p1 reroll: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
+//get rooms
+$result = file_get_contents("http://54.213.19.254/gameroom/list/uid/11");
+echo "p1 rooms: $result \n";
+echo "\n";
+
 ?>

@@ -232,7 +232,7 @@ start(Player1_uid,Player2_uid) ->
     %add this game room to p1's init room list
     RoomsSetKey = io_lib:format("gr_~s",[Player1_uid]),
     {ok, C} = eredis:start_link(),
-    eredis:q(C, ["SET", RoomsSetKey, pid_to_list(Pid)]),
+    eredis:q(C, ["SADD", RoomsSetKey, pid_to_list(Pid)]),
     Pid.
 
 init_gameroom(Player1_uid,Player2_uid) ->
@@ -853,4 +853,14 @@ out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Ra
             Response = [ {code,invalid_call},{call,SortedCallDice},{raise,P1RaiseInt},{pot,Pot} ],
             Output = mochijson2:encode({struct, Response}),
             {html, Output}
-    end.
+    end;
+
+out(Arg, ["list", "uid", Uid]) -> 
+    io:format("list game rooms. ~n",[]),
+    RoomsSetKey = io_lib:format("gr_~s",[Uid]),
+    {ok, C} = eredis:start_link(),
+    {ok, Values} = eredis:q(C, ["SMEMBERS", RoomsSetKey]),
+
+    Response = [ {rooms,Values} ],
+    Output = mochijson2:encode({struct, Response}),
+    {html, Output}.
