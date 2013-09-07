@@ -518,7 +518,7 @@ wait_for_p1_pick_dice_to_roll(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,
 io:format("wait_for_p1_pick_dice_to_roll ~n"),
     receive
         {check, FromPid} ->
-            FromPid ! [{state,"wait_for_p1_pick_dice_to_roll"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_bind,P1BuyIn},{prev_raise,PrevRaise},{bet,Bet},{pot,Pot}];
+            FromPid ! [{state,"wait_for_pick_dice_to_roll"},{p,1},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_bind,P1BuyIn},{prev_raise,PrevRaise},{bet,Bet},{pot,Pot}];
         {p1,reroll,Player1_uid,FromPid,ReRollDicePosList} ->
             NewActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
             %sort the result before returning
@@ -572,8 +572,8 @@ wait_for_p1_call(SortedCallDice,SortedActualDice,P1BuyIn,PrevRaise,Bet,Pot) ->
     io:format("wait_for_p1_call~n"),
     receive
         {check, FromPid} ->
-            FromPid ! [{state,"wait_for_p1_call"},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_bind,P1BuyIn},{prev_raise,PrevRaise},{bet,Bet},{pot,Pot}];
-        {p1,call,Player1_uid,FromPid,P1SortedCallDice,p1_raise,P1Raise} ->
+            FromPid ! [{state,"wait_for_call"},{p,1},{sorted_call_dice,SortedCallDice},{sorted_actual_dice,SortedActualDice},{p1_bind,P1BuyIn},{prev_raise,PrevRaise},{bet,Bet},{pot,Pot}];
+        {p1,call,Player1_uid,FromPid,P1SortedCallDice,raise,P1Raise} ->
 io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
             %if the new call is "smaller" than the previous call -> error
             %make sure P2SortedCallDice is > SortedCallDice
@@ -636,7 +636,7 @@ io:format("p2_call: ~w ~n",[SortedCallDice]),
 player1_call(Pid,Player1_uid,SortedCallDice,P1Raise) -> 
 io:format("p1_call: ~w ~n",[SortedCallDice]),
 
-    Pid ! {p1,call,Player1_uid,self(),SortedCallDice,p1_raise,P1Raise},
+    Pid ! {p1,call,Player1_uid,self(),SortedCallDice,raise,P1Raise},
     receive
         {valid_call,Pot} -> {valid_call,Pot};
         {invalid_call,Pot} -> {invalid_call,Pot}
@@ -680,12 +680,12 @@ out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid]) ->
     Output = mochijson2:encode({struct, StringConverted}),
     {html, Output};
 
-out(Arg, ["join", "room_pid", Pid, "uid", Player2_uid]) -> 
+out(Arg, [Pid, "join", "uid", Player2_uid]) -> 
     io:format("join. ~w~n",[list_to_pid(Pid)]),
     join_gameroom(list_to_pid(Pid), Player2_uid),
     {html, Player2_uid};
 
-out(Arg, ["rolldice", "room_pid", Pid, "p1_uid", Player1_uid,"buy_in", BuyIn]) -> 
+out(Arg, [Pid, "rolldice", "p1_uid", Player1_uid,"buy_in", BuyIn]) -> 
     io:format("!rolldice. ~n",[]),
     player1_rolldice(list_to_pid(Pid),Player1_uid,BuyIn),
     receive
@@ -695,7 +695,7 @@ out(Arg, ["rolldice", "room_pid", Pid, "p1_uid", Player1_uid,"buy_in", BuyIn]) -
             {html, DiceResultJsonStr}
     end;
 
-out(Arg, ["makecall", "room_pid", Pid, "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
+out(Arg, [Pid, "makecall", "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
     io:format("p1 make call. ~n",[]),
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
     P1RaiseInt = list_to_integer(P1Raise),
@@ -714,7 +714,7 @@ out(Arg, ["makecall", "room_pid", Pid, "p1_uid", Player1_uid,"call",D1,D2,D3,D4,
             {html, Output}
     end;
 
-out(Arg, ["check", "room_pid", Pid]) -> 
+out(Arg, [Pid, "check"]) -> 
     io:format("check room. ~n",[]),
     list_to_pid(Pid) ! {'check',self()},
     RoomState = receive
@@ -723,7 +723,7 @@ out(Arg, ["check", "room_pid", Pid]) ->
     Output = mochijson2:encode({struct, [RoomState]}),
     {html, Output};
 
-out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) -> 
+out(Arg, [Pid, "get_call", "p2_uid", Player2_uid]) -> 
     io:format("p2 find out p1 call. ~n",[]),
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
@@ -733,7 +733,7 @@ out(Arg, ["get_p1_call", "room_pid", Pid, "p2_uid", Player2_uid]) ->
             {html, P1DiceResultJsonStr}
     end;
 
-out(Arg, ["get_p2_call", "room_pid", Pid, "p1_uid", Player1_uid]) -> 
+out(Arg, [Pid, "get_call", "p1_uid", Player1_uid]) -> 
     io:format("p1 find out p2 call. ~n",[]),
     player1_findcall(list_to_pid(Pid),Player1_uid),
     receive
@@ -743,7 +743,7 @@ out(Arg, ["get_p2_call", "room_pid", Pid, "p1_uid", Player1_uid]) ->
             {html, P2DiceResultJsonStr}
     end;
 
-out(Arg, ["p2_trust", "room_pid", Pid, "p2_uid", Player2_uid, "bet",P2Bet]) -> 
+out(Arg, [Pid, "trust", "p2_uid", Player2_uid, "bet",P2Bet]) -> 
     io:format("p2 trust. ~n",[]),
     player2_trustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
@@ -760,7 +760,7 @@ io:format("p2 bad bet return result html ~s~n",[P1DiceResultJsonStr]),
         %    io:format("p2_trust not found callback! ~n")
     end;
 
-out(Arg, ["p2_nottrust", "room_pid", Pid, "p2_uid", Player2_uid, "bet",P2Bet]) -> 
+out(Arg, [Pid, "nottrust", "p2_uid", Player2_uid, "bet",P2Bet]) -> 
     io:format("p2 not trust. ~n",[]),
     player2_nottrustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
@@ -772,7 +772,7 @@ out(Arg, ["p2_nottrust", "room_pid", Pid, "p2_uid", Player2_uid, "bet",P2Bet]) -
             {html, P1DiceResultJsonStr}
     end;
 
-out(Arg, ["p1_trust", "room_pid", Pid, "p1_uid", Player1_uid, "bet",P1Bet]) -> 
+out(Arg, [Pid, "trust", "p1_uid", Player1_uid, "bet",P1Bet]) -> 
     io:format("p1 trust. ~n",[]),
     player1_trustcall(list_to_pid(Pid),Player1_uid,P1Bet),
     receive
@@ -788,7 +788,7 @@ io:format("p1_trust bad_bet ~n"),
         %    io:format("p2_trust not found callback! ~n")
     end;
 
-out(Arg, ["p1_nottrust", "room_pid", Pid, "p1_uid", Player1_uid, "bet",P1Bet]) -> 
+out(Arg, [Pid, "nottrust", "p1_uid", Player1_uid, "bet",P1Bet]) -> 
     io:format("p1 not trust. ~n",[]),
     player1_nottrustcall(list_to_pid(Pid),Player1_uid,P1Bet),
     receive
@@ -801,7 +801,7 @@ out(Arg, ["p1_nottrust", "room_pid", Pid, "p1_uid", Player1_uid, "bet",P1Bet]) -
     end;
 
 %when the dice pos is "1", mean that it is reroll, otherwise 0 means no roll
-out(Arg, ["p2_rerolldice", "room_pid", Pid, "p2_uid", Player2_uid, "dice_pos",DicePos1flag,DicePos2flag,DicePos3flag,DicePos4flag,DicePos5flag]) -> 
+out(Arg, [Pid, "rerolldice", "p2_uid", Player2_uid, "dice_pos",DicePos1flag,DicePos2flag,DicePos3flag,DicePos4flag,DicePos5flag]) -> 
     io:format("p2 reroll. ~n",[]),
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player2_reroll(list_to_pid(Pid),Player2_uid,ReRollDicePosList),
@@ -812,7 +812,7 @@ io:format("p2_dicerolled~n"),
             {html, ResultJsonStr}
     end;
 
-out(Arg, ["call", "room_pid", Pid, "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P2Raise]) -> 
+out(Arg, [Pid, "call", "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P2Raise]) -> 
     io:format("p2 make call. ~n",[]),
     P2RaiseInt = list_to_integer(P2Raise),
     SortedRawCallDice = lists:sort([D1,D2,D3,D4,D5]),
@@ -830,7 +830,7 @@ out(Arg, ["call", "room_pid", Pid, "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,
             {html, Output}
     end;
 
-out(Arg, ["p1_rerolldice", "room_pid", Pid, "p1_uid", Player1_uid, "dice_pos",DicePos1flag,DicePos2flag,DicePos3flag,DicePos4flag,DicePos5flag]) -> 
+out(Arg, [Pid, "rerolldice", "p1_uid", Player1_uid, "dice_pos",DicePos1flag,DicePos2flag,DicePos3flag,DicePos4flag,DicePos5flag]) -> 
     io:format("p2 reroll. ~n",[]),
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player1_reroll(list_to_pid(Pid),Player1_uid,ReRollDicePosList),
@@ -841,7 +841,7 @@ io:format("p1_dicerolled~n"),
             {html, ResultJsonStr}
     end;
 
-out(Arg, ["call", "room_pid", Pid, "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
+out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
     io:format("p1 make call. ~n",[]),
     P1RaiseInt = list_to_integer(P1Raise),
     SortedRawCallDice = lists:sort([D1,D2,D3,D4,D5]),
