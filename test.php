@@ -17,14 +17,14 @@ $json = json_decode($result,true);
 
 $buyin=5;
 //p1 roll dice
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/rolldice/p1_uid/11/buy_in/$buyin");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/rolldice/uid/11/buy_in/$buyin");
 echo "p1 rolldice : $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
 //p1 make call
 $raise=2;
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/11/call/2/2/3/3/9/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/uid/11/call/2/2/3/3/9/raise/$raise");
 echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
