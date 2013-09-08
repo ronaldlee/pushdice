@@ -93,7 +93,7 @@ $json = json_decode($result,true);
 //p1 make call
 $raise=2;
 //$result = file_get_contents("http://54.213.19.254/gameroom/$pid/call/p1_uid/22/call/2/2/2/3/9/raise/$raise");
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/call/p1_uid/22/call/3/3/3/3/9/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/call/p1_uid/11/call/3/3/3/3/9/raise/$raise");
 echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
