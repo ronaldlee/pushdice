@@ -37,7 +37,7 @@ $json = json_decode($result,true);
 */
 
 //p2 receive p1 call
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/get_call/p2_uid/22");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/find_call/p2_uid/22");
 echo "p2 receive p1: $result \n";
 echo "\n";
 $json = json_decode($result,true);
@@ -72,7 +72,7 @@ echo "\n";
 $json = json_decode($result,true);
 
 //p1 receive p2 call
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/get_call/p1_uid/11");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/find_call/p1_uid/11");
 echo "p1 receive p2: $result \n";
 echo "\n";
 $json = json_decode($result,true);
@@ -99,7 +99,7 @@ echo "\n";
 $json = json_decode($result,true);
 
 //p2 receive p1 call
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/get_call/p2_uid/22");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/find_call/p2_uid/22");
 echo "p2 receive p1: $result \n";
 echo "\n";
 $json = json_decode($result,true);
@@ -133,7 +133,7 @@ exit;
 }
 
 //p1 receive p2 call
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/get_call/p1_uid/11");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/find_call/p1_uid/11");
 echo "p1 receive p2: $result \n";
 echo "\n";
 $json = json_decode($result,true);
