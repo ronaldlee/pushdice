@@ -141,7 +141,36 @@ out(Arg, ["user", "session", Session]) ->
              {html, UserInfoJsonStr};
           true ->
              {html, "{'code':'-1', 'msg':'Fail to get user data from session.'}"}
-      end.
+      end;
+
+out(Arg, ["friends", "accesstoken", AccessToken]) -> 
+     FBFriendsGraphURL = io_lib:format("https://graph.facebook.com/me/friends?&limit=5&offset=0&access_token=~s",[AccessToken]),
+     io:format("fetch friends url: ~s~n",[FBFriendsGraphURL]),
+     inets:start(),
+     {ok, {{Version, Code, ReasonPhrase}, Headers, Body}} = httpc:request(FBFriendsGraphURL),
+     io:format("http code: ~w~n",[Code]),
+     case Code of
+         200 ->
+           io:format("200 body: ~s~n",[Body]),
+           Json = mochijson2:decode(Body),
+           io:format("200 json: ~w~n",[Json]),
+           {struct,[Data,Pagin]} = Json,
+           io:format("200 data: ~w~n",[Data]),
+           {<<100,97,116,97>>,FriendsList} = Data,
+           io:format("200 friends: ~w~n",[FriendsList]),
+
+           {html, Body};
+         400 ->
+           {html, Body};
+         true ->
+           {html, Body}
+     end.
+
+     %{ok, Result} = httpc:request(FBFriendsGraphURL),
+     %{html, Result}.
+
+
+    
 %% out(Arg, [Fbusername]) -> 
 %%     inets:start(),
 %%     {ok, {{Version, 200, ReasonPhrase}, Headers, Body}} = httpc:request("http://www.erlang.org"),
