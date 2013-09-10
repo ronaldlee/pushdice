@@ -807,7 +807,7 @@ out(Arg, [Pid, "check"]) ->
 out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid]) -> 
     io:format("init. ~n",[]),
     NewPid = start(Player1_uid,Player2_uid),
-    Response = [ {code,"2"}, {pid,pid_to_list(NewPid)} ],
+    Response = [ {status,ok}, {pid,pid_to_list(NewPid)} ],
     ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
     StringConverted = lists:map(ConvertFun, Response),
     Output = mochijson2:encode({struct, StringConverted}),
@@ -995,6 +995,19 @@ out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Ra
             Output = mochijson2:encode({struct, Response}),
             {html, Output}
     end;
+
+out(Arg, ["del", "uid", Uid]) -> 
+    io:format("list game rooms. ~n",[]),
+    InitRoomsSetKey = io_lib:format("gri_~s",[Uid]),
+    JoinRoomsSetKey = io_lib:format("grj_~s",[Uid]),
+
+    {ok, C} = eredis:start_link(),
+    eredis:q(C, ["DEL", InitRoomsSetKey]),
+    eredis:q(C, ["DEL", JoinRoomsSetKey]),
+
+    Output = mochijson2:encode({struct, [ {status,ok} ]}),
+
+    {html, Output};
 
 out(Arg, ["list", "uid", Uid]) -> 
     io:format("list game rooms. ~n",[]),
