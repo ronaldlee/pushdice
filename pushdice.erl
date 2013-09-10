@@ -31,6 +31,19 @@
 %%       Boo = {html, "yooo"},
 %%       Boo.
 
+processFBFriendsJson([],FriendsList ) ->
+  FriendsList;
+processFBFriendsJson([FriendData|Rest],FriendsList ) ->
+  {struct,[NameData,IdData]} = FriendData,
+  {_,Name} = NameData,
+  {_,FBID} = IdData,
+  NewFBData = [{name,Name},{id,FBID}],
+  %NewFBData = {name,io_lib:format("~s",[Name])},{id,io_lib:format("~s",[IdData])},
+  NewFriendsList = lists:append(FriendsList,[NewFBData]),
+io:format("boo ~w~n",[NewFriendsList]),
+  processFBFriendsJson(Rest,NewFriendsList).
+
+
 out(Arg) ->
      Uri = yaws_api:request_url(Arg),
      io:format("rest: ~s~n",[Uri#url.path]),
@@ -151,15 +164,33 @@ out(Arg, ["friends", "accesstoken", AccessToken]) ->
      io:format("http code: ~w~n",[Code]),
      case Code of
          200 ->
-           io:format("200 body: ~s~n",[Body]),
+           %io:format("200 body: ~s~n",[Body]),
            Json = mochijson2:decode(Body),
-           io:format("200 json: ~w~n",[Json]),
+           %io:format("200 json: ~w~n",[Json]),
            {struct,[Data,Pagin]} = Json,
-           io:format("200 data: ~w~n",[Data]),
+           %io:format("200 data: ~w~n",[Data]),
            {<<100,97,116,97>>,FriendsList} = Data,
            io:format("200 friends: ~w~n",[FriendsList]),
 
-           {html, Body};
+           TrimmdFriendsList = processFBFriendsJson(FriendsList,[]),
+           io:format("200 trimmed friends: ~w~n",[TrimmdFriendsList]),
+
+           ConvertFun = fun([{name,X},{id,Y}]) -> 
+               io:format("uuu ~s,~s~n",[binary_to_list(X),binary_to_list(Y)]), 
+               %{struct,[{name,io_lib:format("~s",[binary_to_list(X)])},{id,io_lib:format("~s",[binary_to_list(Y)])}]} 
+               {Y,{struct,[{name,X},{id,Y}]}} 
+           end,
+
+           %ConvertFun = fun({X,Y}) -> {X,Y} end,
+           StringConverted = lists:map(ConvertFun, TrimmdFriendsList),
+io:format("out1: ~w~n",[StringConverted]),
+           Output = mochijson2:encode({struct, StringConverted}),
+
+           %Output = mochijson2:encode({struct, TrimmdFriendsList}),
+%io:format("out: ~w~n",[Output]),
+io:format("out: ~n",[]),
+
+           {html, Output};
          400 ->
            {html, Body};
          true ->
