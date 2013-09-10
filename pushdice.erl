@@ -43,7 +43,35 @@ processFBFriendsJson([FriendData|Rest],FriendsList ) ->
 io:format("boo ~w~n",[NewFriendsList]),
   processFBFriendsJson(Rest,NewFriendsList).
 
+populateFriendsList([],FBFriendsList,GamePlayersList) ->
+  {FBFriendsList,GamePlayersList};
+populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList) ->
+  {FB_UID,FB_ID_NAME} = FB_data,
+%io:format("fb uid: ~s~n",[FB_UID]),
+  %check if FB user is also a player
+  SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE plat_id='~s'",[FB_UID]),
+  SelectResult = emysql:execute(pushdice_pool, SelectSQL),
+  Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+  SelectLength = length(Recs),
+  case SelectLength of
+    1->
+     [{game_user,NewUserId,FoundUsername,FoundId,FoundType,{datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
+             ConsecDaysPlayed,IsUnlocked,Coins} | _ ] = Recs,
 
+      {FBIDKey,FBSTRUCT} = FB_data,
+      {struct,[FBNAME,FBID]} = FBSTRUCT,
+      New_user_data = {FBIDKey,{struct,[FBNAME,FBID,{uid,NewUserId}]}},
+%io:format("hihi: ~w~n",[New_user_data]),
+      NewGamePlayersList = lists:append(GamePlayersList,[New_user_data]),
+      populateFriendsList(Rest,FBFriendsList,NewGamePlayersList);
+    0->
+      NewFBFriendsList = lists:append(FBFriendsList,[FB_data]),
+      populateFriendsList(Rest,NewFBFriendsList,GamePlayersList);
+    true->
+      populateFriendsList(Rest,FBFriendsList,GamePlayersList) 
+  end.
+
+%%%%%%%%%%%%%%%%%%%%
 out(Arg) ->
      Uri = yaws_api:request_url(Arg),
      io:format("rest: ~s~n",[Uri#url.path]),
@@ -157,7 +185,7 @@ out(Arg, ["user", "session", Session]) ->
       end;
 
 out(Arg, ["friends", "accesstoken", AccessToken]) -> 
-     FBFriendsGraphURL = io_lib:format("https://graph.facebook.com/me/friends?&limit=5&offset=0&access_token=~s",[AccessToken]),
+     FBFriendsGraphURL = io_lib:format("https://graph.facebook.com/me/friends?&limit=5000&offset=0&access_token=~s",[AccessToken]),
      io:format("fetch friends url: ~s~n",[FBFriendsGraphURL]),
      inets:start(),
      {ok, {{Version, Code, ReasonPhrase}, Headers, Body}} = httpc:request(FBFriendsGraphURL),
@@ -178,13 +206,20 @@ out(Arg, ["friends", "accesstoken", AccessToken]) ->
            ConvertFun = fun([{name,X},{id,Y}]) -> 
                io:format("uuu ~s,~s~n",[binary_to_list(X),binary_to_list(Y)]), 
                %{struct,[{name,io_lib:format("~s",[binary_to_list(X)])},{id,io_lib:format("~s",[binary_to_list(Y)])}]} 
-               {Y,{struct,[{name,X},{id,Y}]}} 
+               {Y,{struct,[{name,X},{fbuid,Y}]}} 
            end,
 
            %ConvertFun = fun({X,Y}) -> {X,Y} end,
            StringConverted = lists:map(ConvertFun, TrimmdFriendsList),
-io:format("out1: ~w~n",[StringConverted]),
-           Output = mochijson2:encode({struct, StringConverted}),
+%io:format("out1: ~w~n",[StringConverted]),
+
+
+           {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[]),
+%io:format("fb friend: ~w~n",[FBFriendsList]),
+io:format("player friend: ~w~n",[GamePlayersList]),
+
+           %Output = mochijson2:encode({struct, StringConverted}),
+           Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
 
            %Output = mochijson2:encode({struct, TrimmdFriendsList}),
 %io:format("out: ~w~n",[Output]),
