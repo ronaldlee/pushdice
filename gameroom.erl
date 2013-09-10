@@ -243,7 +243,7 @@ start(Player1_uid,Player2_uid) ->
 init_gameroom(Player1_uid,Player2_uid) ->
     receive
         {check, FromPid} -> 
-            FromPid ! [p1,Player1_uid,p2,Player2_uid,init_gameroom],
+            FromPid ! [Player2_uid,p2,wait_for,join],
             init_gameroom(Player1_uid,Player2_uid);
         {join, Player2_uid} ->
             io:format("join. ~s~n",[Player2_uid]),
