@@ -808,7 +808,7 @@ out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid]) ->
     io:format("init. ~n",[]),
     NewPid = start(Player1_uid,Player2_uid),
     io:format("init 2. ~w~n",[NewPid]),
-    Response = [ {status,"ok"}, {pid,pid_to_list(NewPid)} ],
+    Response = [ {code,"ok"}, {pid,pid_to_list(NewPid)} ],
     ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
     StringConverted = lists:map(ConvertFun, Response),
     io:format("init 2. ~w~n",[StringConverted]),
