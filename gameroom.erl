@@ -243,7 +243,7 @@ start(Player1_uid,Player2_uid) ->
 init_gameroom(Player1_uid,Player2_uid) ->
     receive
         {check, FromPid} -> 
-            FromPid ! [Player2_uid,p2,wait_for,join],
+            FromPid ! [Player1_uid,p1,wait_for,rolldice],
             init_gameroom(Player1_uid,Player2_uid);
         {join, Player2_uid} ->
             io:format("join. ~s~n",[Player2_uid]),
@@ -807,9 +807,11 @@ out(Arg, [Pid, "check"]) ->
 out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid]) -> 
     io:format("init. ~n",[]),
     NewPid = start(Player1_uid,Player2_uid),
-    Response = [ {status,ok}, {pid,pid_to_list(NewPid)} ],
+    io:format("init 2. ~w~n",[NewPid]),
+    Response = [ {status,"ok"}, {pid,pid_to_list(NewPid)} ],
     ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
     StringConverted = lists:map(ConvertFun, Response),
+    io:format("init 2. ~w~n",[StringConverted]),
     Output = mochijson2:encode({struct, StringConverted}),
     {html, Output};
 
@@ -818,7 +820,7 @@ out(Arg, [Pid, "join", "uid", Player2_uid]) ->
     join_gameroom(list_to_pid(Pid), Player2_uid),
     {html, Player2_uid};
 
-out(Arg, [Pid, "rolldice", "uid", Player1_uid,"buy_in", BuyIn]) -> 
+out(Arg, [Pid, "rolldice", "p1_uid", Player1_uid,"buy_in", BuyIn]) -> 
     io:format("!rolldice. ~n",[]),
     player1_rolldice(list_to_pid(Pid),Player1_uid,BuyIn),
     receive
@@ -828,7 +830,7 @@ out(Arg, [Pid, "rolldice", "uid", Player1_uid,"buy_in", BuyIn]) ->
             {html, DiceResultJsonStr}
     end;
 
-out(Arg, [Pid, "makecall", "uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
+out(Arg, [Pid, "makecall", "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
     io:format("p1 make call. ~n",[]),
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
     P1RaiseInt = list_to_integer(P1Raise),
