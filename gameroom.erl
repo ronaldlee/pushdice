@@ -1,6 +1,7 @@
 -module(gameroom).
 -include("/home/ubuntu/yaws/include/yaws_api.hrl").
 -compile(export_all).
+-record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
 -define(MAX_DICE_SCORE,84).
 
 getDiceScore(DiceList) ->
@@ -767,20 +768,43 @@ io:format("check room 1 ~s-~w~n",[binary_to_list(RoomId),self()]),
 io:format("check room 2 ~n"),
     receive
         [PlayerID|Data] -> 
-io:format("match 1 ~n",[]),
+io:format("check return ~n",[]),
             [PRole|Rest] = Data,
-io:format("match 2 ~w~n",[PRole]),
             [wait_for|Rest2] = Rest,
             [State|Rest3] = Rest2,
-io:format("match 3 ~w~n",[State]),
+
+            SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~s'",[PlayerID]),
+io:format("check mysql sql ~s~n",[SelectSQL]),
+            SelectResult = emysql:execute(pushdice_pool, SelectSQL),
+io:format("check mysql result ~n",[]),
+            Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+            SelectLength = length(Recs),
+
+io:format("check SelectLength ~w~n",[SelectLength]),
+            {UserId,Username,PlatId,Coins} = case SelectLength of
+              1->
+io:format("check room found ~n",[]),
+                [{game_user,FoundUserId,FoundUsername,FoundPlatId,FoundPlatType,
+                  {datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
+                 ConsecDaysPlayed,IsUnlocked,FoundCoins} | _ ] = Recs,
+                {FoundUserId,FoundUsername,FoundPlatId,FoundCoins};
+              _->
+io:format("check room not found ~n",[]),
+                {PlayerID,"unknown","","0"}
+            end,
+
+io:format("check room user ~s,~w,~w~n",[Username,PlayerID,P]),
             if 
               (PlayerID == P) ->
+io:format("check room user ==~n",[]),
                 %NewMyTurnList = lists:append(MyTurnList,[{RoomId,State}]),
-                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)}]} }]),
+                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username}]} }]),
+io:format("check room user == P ~w~n",[NewMyTurnList]),
                 checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P);
               true ->
                 %NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,State}]),
-                NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)}]} }]),
+                NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username}]} }]),
+io:format("check room user != P ~w~n",[NewOthersTurnList]),
                 checkRoomTurns(Rooms,MyTurnList,NewOthersTurnList,P)
             end;
         true -> 
@@ -795,6 +819,24 @@ out(Arg) ->
     Uri = yaws_api:request_url(Arg),
     [Path|Rest] = string:tokens(Uri#url.path, "/"),
     Method = (Arg#arg.req)#http_request.method,
+    MysqlStatus = application:start(emysql),
+    io:format("mysql: ~w~n",[MysqlStatus]),
+
+    case MysqlStatus of
+       {error,_} ->
+           io:format("mysql error ~n",[])
+    end,
+io:format("PASSSS 1 ~n",[]),
+    Status = try (emysql:add_pool(pushdice_pool, 1, "root", "hellojoe", "localhost", 3306, "pushdice", utf8)) of
+            Val -> 0
+        catch
+            exit:pool_already_exists ->
+                io:format("throw error already exist ~n",[]),
+                1
+        end,
+io:format("PASSSS 2 ~w~n",[Status]),
+
+io:format("PASSSS ~n",[]),
     out(Arg,Rest).
 
 out(Arg, [Pid, "check"]) -> 
