@@ -11,33 +11,14 @@ echo "****** p2 rooms: $result \n";
 echo "\n";
 }
 
-$result = file_get_contents("http://54.213.19.254/gameroom/init/p1_uid/11/p2_uid/22");
-echo "p1 create game: $result \n";
+$result = file_get_contents("http://54.213.19.254/gameroom/init/p1_uid/11/p2_uid/22/bind/5");
+echo "p1 create game and roll dice: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 $pid = null;
 if (isset($json['pid'])) {
     $pid = $json['pid'];  
 }
-
-showRoom();
-
-//P2 join room
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/join/uid/22");
-echo "p2 join: $result \n";
-echo "\n";
-$json = json_decode($result,true);
-
-showRoom();
-
-$buyin=5;
-//p1 roll dice
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/rolldice/p1_uid/11/buy_in/$buyin");
-echo "p1 rolldice : $result \n";
-echo "\n";
-$json = json_decode($result,true);
-
-showRoom();
 
 //p1 make call
 $raise=2;
@@ -46,23 +27,7 @@ echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom();
-
-/*
-$raise=2;
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/call/p1_uid/22/call/3/3/3/3/9/raise/$raise");
-echo "p1 make call: $result \n";
-$json = json_decode($result,true);
-*/
-
-//p2 receive p1 call
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/find_call/p2_uid/22");
-echo "p2 receive p1: $result \n";
-echo "\n";
-$json = json_decode($result,true);
-
-showRoom();
-
+//showRoom();
 
 //p2 not trust
 /*
@@ -71,6 +36,14 @@ echo "p2 not trust: $result \n";
 $json = json_decode($result,true);
 */
 
+//p2 accept game 
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/accept_game/p2_uid/22/bind/10");
+echo "p2 accept game: $result \n";
+echo "\n";
+$json = json_decode($result,true);
+
+//showRoom();
+
 
 //p2 trust
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/trust/p2_uid/22/bet/10");
@@ -78,7 +51,7 @@ echo "p2 trust: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom();
+//showRoom();
 
 //p2 reroll dice
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/rerolldice/p2_uid/22/dice_pos/0/0/1/0/1");
