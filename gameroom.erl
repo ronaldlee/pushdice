@@ -790,7 +790,7 @@ io:format("check room found ~n",[]),
                 {FoundUserId,FoundUsername,FoundPlatId,FoundCoins};
               _->
 io:format("check room not found ~n",[]),
-                {PlayerID,"unknown","","0"}
+                {PlayerID,unknown,"","0"}
             end,
 
 io:format("check room user ~s,~w,~w~n",[Username,PlayerID,P]),
@@ -798,6 +798,7 @@ io:format("check room user ~s,~w,~w~n",[Username,PlayerID,P]),
               (PlayerID == P) ->
 io:format("check room user ==~n",[]),
                 %NewMyTurnList = lists:append(MyTurnList,[{RoomId,State}]),
+                %NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,list_to_binary(Username)}]} }]),
                 NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username}]} }]),
 io:format("check room user == P ~w~n",[NewMyTurnList]),
                 checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P);
@@ -827,6 +828,7 @@ out(Arg) ->
            io:format("mysql error ~n",[])
     end,
 io:format("PASSSS 1 ~n",[]),
+    emysql:remove_pool(pushdice_pool),
     Status = try (emysql:add_pool(pushdice_pool, 1, "root", "hellojoe", "localhost", 3306, "pushdice", utf8)) of
             Val -> 0
         catch

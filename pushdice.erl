@@ -85,6 +85,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      MysqlStatus = application:start(emysql),
      io:format("mysql: ~w~n",[MysqlStatus]),
 
+     emysql:remove_pool(pushdice_pool),
      Status = try (emysql:add_pool(pushdice_pool, 1, "root", "hellojoe", "localhost", 3306, "pushdice", utf8)) of 
          Val -> 0
      catch
