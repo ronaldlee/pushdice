@@ -1,7 +1,13 @@
 <?php
 
+$p1="58";
+$p2="57";
+
+/*
 $p1="11";
 $p2="22";
+*/
+
 
 function showRoom($p1,$p2) {
 //get rooms

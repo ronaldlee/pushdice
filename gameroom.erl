@@ -828,7 +828,12 @@ out(Arg) ->
            io:format("mysql error ~n",[])
     end,
 io:format("PASSSS 1 ~n",[]),
-    emysql:remove_pool(pushdice_pool),
+    %try (emysql:remove_pool(pushdice_pool)) of
+    %  RemoveVal -> 0
+    %catch
+    %    _ -> 1
+    %end,
+io:format("PASSSS 1a ~n",[]),
     Status = try (emysql:add_pool(pushdice_pool, 1, "root", "hellojoe", "localhost", 3306, "pushdice", utf8)) of
             Val -> 0
         catch
@@ -839,7 +844,9 @@ io:format("PASSSS 1 ~n",[]),
 io:format("PASSSS 2 ~w~n",[Status]),
 
 io:format("PASSSS ~n",[]),
-    out(Arg,Rest).
+    HtmlOutput = out(Arg,Rest),
+    emysql:remove_pool(pushdice_pool),
+    HtmlOutput.
 
 out(Arg, [Pid, "check"]) -> 
     io:format("check room. ~n",[]),
