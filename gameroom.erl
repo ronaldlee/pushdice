@@ -269,7 +269,7 @@ init_gameroom(Player1_uid,Player2_uid,P1Bind,NewActualDice,SortedActualDice) ->
 wait_for_p1_makecall(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Bet,Pot) ->
     receive
         {check, FromPid} -> 
-            FromPid ! [Player1_uid,p1,wait_for,makecall,pot,Pot,bet,Bet,sorted_actual_dice,SortedActualDice,p1_bind,P1Bind],
+            FromPid ! [Player1_uid,p1,wait_for,makecall,pot,Pot,bet,Bet,sorted_call_dice,SortedCallDice,sorted_actual_dice,SortedActualDice,p1_bind,P1Bind],
             wait_for_p1_makecall(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Bet,Pot);
         {p1,call,ExtPlayer1_uid,FromPid,P1SortedCallDice,raise,P1Raise} ->
             io:format("make call aaa~n",[]),
@@ -777,6 +777,10 @@ io:format("check return ~n",[]),
             [CurrentPot|Rest5] = Rest4,
             [bet|Rest6] = Rest5,
             [CurrentBet|Rest7] = Rest6,
+            [sorted_call_dice|Rest8] = Rest7,
+            [SCalledDice|Rest9] = Rest8,
+            [sorted_actual_dice|Rest10] = Rest9,
+            [SActualDice|Rest11] = Rest10,
 
             SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~s'",[PlayerID]),
 io:format("check mysql sql ~s~n",[SelectSQL]),
@@ -804,12 +808,12 @@ io:format("check room user ~s,~w,~w~n",[Username,PlayerID,P]),
 io:format("check room user ==~n",[]),
                 %NewMyTurnList = lists:append(MyTurnList,[{RoomId,State}]),
                 %NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,list_to_binary(Username)}]} }]),
-                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet}]} }]),
+                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet},{currentcall,SCalledDice},{currentdice,SActualDice}]} }]),
 io:format("check room user == P ~w~n",[NewMyTurnList]),
                 checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P);
               true ->
                 %NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,State}]),
-                NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet}]} }]),
+                NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet},{currentcall,SCalledDice},{currentdice,SActualDice}]} }]),
 io:format("check room user != P ~w~n",[NewOthersTurnList]),
                 checkRoomTurns(Rooms,MyTurnList,NewOthersTurnList,P)
             end;
