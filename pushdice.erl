@@ -77,14 +77,9 @@ out(Arg) ->
      io:format("rest: ~s~n",[Uri#url.path]),
      [Path|Rest] = string:tokens(Uri#url.path, "/"),
      Method = (Arg#arg.req)#http_request.method,
-     out(Arg,Rest).
 
-out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", AccessToken]) -> 
-     CryptoStatus = crypto:start(),
-     io:format("cryp: ~w~n",[CryptoStatus]),
      MysqlStatus = application:start(emysql),
      io:format("mysql: ~w~n",[MysqlStatus]),
-
      Status = try (emysql:add_pool(pushdice_pool, 1, "root", "hellojoe", "localhost", 3306, "pushdice", utf8)) of 
          Val -> 0
      catch
@@ -92,12 +87,20 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
              io:format("throw error already exist ~n",[]),
              1
      end,
+     HtmlOut = out(Arg,Rest),
+     emysql:remove_pool(pushdice_pool),
+     HtmlOut.
+
+out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", AccessToken]) -> 
+     CryptoStatus = crypto:start(),
+     io:format("cryp: ~w~n",[CryptoStatus]),
+
 
      SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE name='~s' and plat_id='~s' and plat_type='~s'",[Username,Id,Type]),
      SelectResult = emysql:execute(pushdice_pool, SelectSQL),
      Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
      SelectLength = length(Recs),
-     %io:format("mysqlllll recs ~w~n",[Recs]),
+     io:format("mysqlllll recs ~w~n",[Recs]),
      %io:format("mysqlllll recs length: ~w~n",[length(Recs)]),
 
      case SelectLength of 
@@ -138,7 +141,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      end,
      io:format("user id to use ~w~n",[NewUserId]),
 
-     MemcachedStatus = erlmc:start(),
+     %MemcachedStatus = erlmc:start(),
      %io:format("memcached: ~w~n",[MemcachedStatus]),
 
      %ReturnUserData = erlmc:get(UserCacheKey),
@@ -154,9 +157,9 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      io:format("user data ~w~n",[UserData]),
      UserSessionCacheKey = string:concat("pd_session_",SessionId),
      erlmc:set(UserSessionCacheKey,term_to_binary(UserData),?USER_SESSION_EXPIRATION),
+     io:format("done set memcached ~n",[]),
 
      SessionJson= mochijson2:encode({struct, [{session,list_to_binary(SessionId)}]}),
-     emysql:remove_pool(pushdice_pool),
      {html, SessionJson};
 
 out(Arg, ["login", "username", Username, "id", Id, "type", Type]) -> 
