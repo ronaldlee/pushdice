@@ -246,7 +246,7 @@ start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
     SortedActualDice = lists:sort(NewActualDice),
 
-    Pid = spawn(gameroom, init_gameroom, [Player1_uid,Player2_uid,P1Bind,P1BuyIn,NewActualDice,SortedActualDice]),
+    Pid = spawn(gameroom, init_gameroom, [Player1_uid,Player2_uid,P1Bind,P1BuyIn-P1Bind,NewActualDice,SortedActualDice]),
     %need monitor the game room!
     io:format("start: pid: ~w~n",[Pid]),
     %% register(gameroom_proc, Pid),
@@ -317,7 +317,7 @@ io:format("p2 wait for trust or not.. ~n"),
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
                 NewPot = Pot + P2Bind,
                 FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",P1Raise,"pot",NewPot},
-                wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,NewP2BuyIn,P1Raise,Bet,NewPot)
+                wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn-P2Bind,P1Raise,Bet,NewPot)
             end
     end.
 
@@ -392,7 +392,7 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                     %else return p1's actual dice
                     NewPot = Pot + NewBet,
                     FromPid ! {p2,valid_bet,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewBet,NewPot},
-                    wait_for_p2_pick_dice_to_roll(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,NewBet,NewPot)
+                    wait_for_p2_pick_dice_to_roll(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn-NewBet,PrevRaise,NewBet,NewPot)
               end
             end;
         {p2,not_trust,ExtPlayer2_uid,FromPid,bet,NewBet} ->
@@ -408,6 +408,8 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                     wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot);
                   true ->
                     NewPot = Pot + NewBet,
+                    UpdatedP2BuyIn = P2BuyIn - NewBet,
+
                     io:format("p2 not trust, check p1 call and actual! actual: ~w; call: ~w ~n",[SortedActualDice,SortedCallDice]),
                     %if p1 actual result not match the dice comb call by p1, p2 win. else p2 lose
 
@@ -470,7 +472,7 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
                     %else return p2's actual dice
                     NewPot = Pot + NewBet,
                     FromPid ! {p1,valid_bet,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewBet,NewPot},
-                    wait_for_p1_pick_dice_to_roll(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,NewBet,NewPot)
+                    wait_for_p1_pick_dice_to_roll(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn-NewBet,P2BuyIn,PrevRaise,NewBet,NewPot)
                 end
             end;
         {p1,not_trust,ExtPlayer1_uid,FromPid,bet,NewBet} ->
@@ -627,7 +629,7 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
 
                     FromPid ! {valid_call,NewPot},
                     %wait_for_p1_trust_or_not(P2SortedCallDice,SortedActualDice,P1Bind,NewPrevRaise,NewPot);
-                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn,NewPrevRaise,Bet,NewPot);
+                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot);
                 (P2SortedCallDiceScore > PrevSortedCallDiceScore) ->
                     io:format("P2 call is greater than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
                     %valid call
@@ -636,7 +638,7 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
 
                     FromPid ! {valid_call,NewPot},
                     %wait_for_p1_trust_or_not(P2SortedCallDice,SortedActualDice,P1Bind,NewPrevRaise,NewPot);
-                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn,NewPrevRaise,Bet,NewPot);
+                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot);
                 true ->
                     io:format("Invalid P2 call is less than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
                     FromPid ! {invalid_call,Pot},
@@ -673,21 +675,21 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
                     wait_for_p1_call(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot);
                 (P1SortedCallDiceScore == ?MAX_DICE_SCORE) ->
                     %what will happen??
-                    NewPot = Pot + PrevRaise,
-                    NewPrevRaise = PrevRaise,
+                    NewPot = Pot + P1Raise,
+                    NewPrevRaise = P1Raise,
 
                     FromPid ! {valid_call,NewPot},
                     %wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1Bind,NewPrevRaise,NewPot);
-                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn,NewPrevRaise,Bet,NewPot);
+                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,P1Bind,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot);
                 (P1SortedCallDiceScore > PrevSortedCallDiceScore) ->
                     io:format("P1 call is greater than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
                     %valid call
-                    NewPot = Pot + PrevRaise,
-                    NewPrevRaise = PrevRaise,
+                    NewPot = Pot + P1Raise,
+                    NewPrevRaise = P1Raise,
 
                     FromPid ! {valid_call,NewPot},
                     %wait_for_p2_trust_or_not(SortedCallDice,SortedActualDice,P1Bind,NewPrevRaise,NewPot);
-                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn,NewPrevRaise,Bet,NewPot);
+                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,P1Bind,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot);
                 true ->
                     io:format("Invalid P1 call is less than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
                     FromPid ! {invalid_call,Pot},
