@@ -39,7 +39,7 @@ $json = json_decode($result,true);
 showRoom($p1,$p2);
 
 //p2 accept game 
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/accept_game/p2_uid/$p2/bind/10");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/accept_game/p2_uid/$p2/bind/10/buyin/1000");
 echo "p2 accept game: $result \n";
 echo "\n";
 $json = json_decode($result,true);
