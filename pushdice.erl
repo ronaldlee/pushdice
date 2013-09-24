@@ -112,11 +112,14 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
 
          case InsertResult of 
             {ok_packet,_,_,NewUserId,_,_,[]} -> 
+                IsNewAccount = true,
                 true;
             _ ->
+              IsNewAccount = false,
               NewUserId = "unknown"
          end;
        1 ->
+         IsNewAccount = false,
          io:format("mysqlllll found user~n",[]),
          [{game_user,NewUserId,FoundUsername,FoundId,FoundType,{datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
              ConsecDaysPlayed,IsUnlocked,Coins} | _ ] = Recs,
@@ -128,6 +131,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
          TimeDiff = LocalTime-LastPlayTime,
 
          %if last play time is greater than 1 day and less than 2 days -> consecutive days
+%but need to prevent from adding consecutive days for every login on the same day!!!
          if ((TimeDiff > ?ONE_DAY_SECS) and (TimeDiff < ?TWO_DAY_SECS)) ->
              UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=consecutive_days_played+1 WHERE user_id='~w'",[NewUserId]),
              UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL);
@@ -153,7 +157,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      Timestamp = Mega * 1000000 * 1000000 + Sec * 1000000 + Micro,
      SessionId = string:concat(integer_to_list(NewUserId),integer_to_list(Timestamp)),
 
-     UserData = {{user_id,NewUserId},{name,Username},{plat_id,Id},{plat_type,Type}},
+     UserData = {{user_id,NewUserId},{name,Username},{plat_id,Id},{plat_type,Type},{is_new_acct,IsNewAccount}},
      io:format("user data ~w~n",[UserData]),
      UserSessionCacheKey = string:concat("pd_session_",SessionId),
      erlmc:set(UserSessionCacheKey,term_to_binary(UserData),?USER_SESSION_EXPIRATION),
@@ -170,7 +174,7 @@ out(Arg, ["user", "session", Session]) ->
      FetchUserSessionCacheKey = string:concat("pd_session_",Session),
      FetchUserBinData = erlmc:get(FetchUserSessionCacheKey),
      FetchUserData = binary_to_term(FetchUserBinData),
-     {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType}} = FetchUserData,
+     {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct}} = FetchUserData,
 
      %use FetchUserId to fetch more user data from db
      FetchUserSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~w'",[FetchUserId]),
@@ -179,9 +183,12 @@ out(Arg, ["user", "session", Session]) ->
      Recs = emysql_util:as_record(FetchUserResult, game_user, record_info(fields, game_user)),
      io:format("fetch user by session: recs: ~w~n",[Recs]),
 
+     %if consecutive days play >= 1, consecutive_days_played = true
+     DailyBonus = true,
+
      case Recs of 
          [{game_user,UserId,UserName,UserPlatId,UserPlatType,{datetime,{{UserLastPlayYr,UserLastPlayM,UserLastPlayDay},{UserLastPlayHr,UserLastPlayMin,UserLastPlaySec}}},UserConsecDaysPlayed,UserIsUnlocked,UserCoins}] ->
-             UserInfoJson =  [{user_id,UserId},{name,UserName},{plat_id,UserPlatId},{plat_type,UserPlatType},{coins,UserCoins},{unlock,UserIsUnlocked}],
+             UserInfoJson =  [{user_id,UserId},{name,UserName},{plat_id,UserPlatId},{plat_type,UserPlatType},{coins,UserCoins},{unlock,UserIsUnlocked},{dailybonus,DailyBonus},{is_new_acct,IsNewAcct}],
              UserInfoJsonStr = mochijson2:encode({struct, UserInfoJson}),
              {html, UserInfoJsonStr};
           true ->

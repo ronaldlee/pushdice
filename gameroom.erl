@@ -823,7 +823,7 @@ io:format("check room user == P ~w~n",[NewMyTurnList]),
                 checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P);
               true ->
                 %NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,State}]),
-                NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet},{currentcall,SCalledDice},{currentdice,SActualDice},{lastdice,PrevSActualDice},{bind,Bind},{p1_buyin,P1_Buyin},{p2_buyin,P2_Buyin},{opp_uid,OppUserId},{opp_name,OppUsername},{opp_platid,OppPlatId}]} }]),
+                NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet},{currentcall,SCalledDice},{currentdice,SActualDice},{lastdice,PrevSActualDice},{bind,Bind},{p1_buyin,P1_Buyin},{p2_buyin,P2_Buyin},{opp_uid,UserId},{opp_name,Username},{opp_platid,PlatId}]} }]),
 io:format("check room user != P ~w~n",[NewOthersTurnList]),
                 checkRoomTurns(Rooms,MyTurnList,NewOthersTurnList,P)
             end;
