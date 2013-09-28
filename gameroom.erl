@@ -260,6 +260,7 @@ start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
     {ok, C} = eredis:start_link(),
     eredis:q(C, ["SADD", P1RoomsSetKey, pid_to_list(Pid)]),
     eredis:q(C, ["SADD", P2RoomsSetKey, pid_to_list(Pid)]),
+    eredis:stop(C),
 
     {Pid,NewActualDice,SortedActualDice}.
 
@@ -1086,6 +1087,7 @@ out(Arg, ["del", "uid", Uid]) ->
     {ok, C} = eredis:start_link(),
     eredis:q(C, ["DEL", InitRoomsSetKey]),
     eredis:q(C, ["DEL", JoinRoomsSetKey]),
+    eredis:stop(C),
 
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
 
@@ -1099,6 +1101,9 @@ out(Arg, ["list", "uid", Uid]) ->
     {ok, C} = eredis:start_link(),
     {ok, InitRooms} = eredis:q(C, ["SMEMBERS", InitRoomsSetKey]),
     {ok, JoinRooms} = eredis:q(C, ["SMEMBERS", JoinRoomsSetKey]),
+    eredis:stop(C),
+    %InitRooms = [],
+    %JoinRooms = [],
 
     %for each room, call "check" to see whos turn
     %if initroom list, p1 means your turn
