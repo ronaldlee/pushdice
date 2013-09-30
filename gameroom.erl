@@ -761,9 +761,11 @@ player1_reroll(Pid,ExtPlayer1_uid,ReRollDicePosList) ->
     Pid ! {p1,reroll,ExtPlayer1_uid,self(),ReRollDicePosList}.
 
 getPlayerInfo(PlayerID) ->
-    SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~s'",[PlayerID]),
-    SelectResult = emysql:execute(pushdice_pool, SelectSQL),
-    Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+    %SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~s'",[PlayerID]),
+    %SelectResult = emysql:execute(pushdice_pool, SelectSQL),
+    %Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+
+    Recs = usermodel:getUser(pushdice_pool,PlayerID),
     SelectLength = length(Recs),
 
     {UserId,Username,PlatId,Coins} = case SelectLength of

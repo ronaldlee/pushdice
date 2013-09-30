@@ -49,9 +49,10 @@ populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList) ->
   {FB_UID,FB_ID_NAME} = FB_data,
 %io:format("fb uid: ~s~n",[FB_UID]),
   %check if FB user is also a player
-  SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE plat_id='~s'",[FB_UID]),
-  SelectResult = emysql:execute(pushdice_pool, SelectSQL),
-  Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+  %SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE plat_id='~s'",[FB_UID]),
+  %SelectResult = emysql:execute(pushdice_pool, SelectSQL),
+  %Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+  Recs = usermodel:getUserByPlatID(pushdice_pool,FB_UID,fb),
   SelectLength = length(Recs),
   case SelectLength of
     1->
@@ -96,9 +97,11 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      io:format("cryp: ~w~n",[CryptoStatus]),
 
 
-     SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE name='~s' and plat_id='~s' and plat_type='~s'",[Username,Id,Type]),
-     SelectResult = emysql:execute(pushdice_pool, SelectSQL),
-     Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+     %SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE name='~s' and plat_id='~s' and plat_type='~s'",[Username,Id,Type]),
+     %SelectResult = emysql:execute(pushdice_pool, SelectSQL),
+     %Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+
+     Recs = usermodel:getUserByUsernameAndPlatID(pushdice_pool,Username,Id,Type),
      SelectLength = length(Recs),
      io:format("mysqlllll recs ~w~n",[Recs]),
      %io:format("mysqlllll recs length: ~w~n",[length(Recs)]),
@@ -108,9 +111,10 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
          %new user, no daily bonus
          DailyBonus = false, 
 
-         InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,consecutive_days_played,coins,last_play_date) values ('~s','~s','~s','~s','1','1000',NULL)",[Username,Id,Type,AccessToken]),
-         io:format("mysqlllll insert sql: ~s~n",[InsertSql]),
-         InsertResult = emysql:execute(pushdice_pool, InsertSql),
+         %InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,consecutive_days_played,coins,last_play_date) values ('~s','~s','~s','~s','1','1000',NULL)",[Username,Id,Type,AccessToken]),
+         %io:format("mysqlllll insert sql: ~s~n",[InsertSql]),
+         %InsertResult = emysql:execute(pushdice_pool, InsertSql),
+         InsertResult = usermodel:createUser(pushdice_pool,Username,Id,Type,AccessToken),
          io:format("mysqlllll insert result: ~w~n",[InsertResult]),
 
          case InsertResult of 
@@ -139,13 +143,15 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
              %consecutive play, daily bonus
              DailyBonus = true,
 
-             UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=consecutive_days_played+1 WHERE user_id='~w'",[NewUserId]),
-             UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL);
+             %UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=consecutive_days_played+1 WHERE user_id='~w'",[NewUserId]),
+             %UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL);
+             UpdateConsecDaysPlayedResult = usermodel:incrementLastPlayAndConsecDaysPlayed(pushdice_pool,integer_to_list(NewUserId));
              true ->
              %not consec day play, reset to 1
              DailyBonus = false,
-             UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=1 WHERE user_id='~w'",[NewUserId]),
-             UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL)
+             %UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=1 WHERE user_id='~w'",[NewUserId]),
+             %UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL)
+             UpdateConsecDaysPlayedResult = usermodel:resetLastPlayAndConsecDaysPlayed(pushdice_pool,integer_to_list(NewUserId))
          end,
          io:format("mysqlllll found LastPlayTime ~w, ~w ~w~n",[LastPlayTime, LocalTime, TimeDiff]),
          io:format("mysqlllll found user id ~w~n",[NewUserId])
@@ -189,10 +195,12 @@ out(Arg, ["user", "session", Session]) ->
      io:format("XXXXX user 4~n",[]),
 
      %use FetchUserId to fetch more user data from db
-     FetchUserSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~w'",[FetchUserId]),
-     io:format("fetch user sql: recs: ~s~n",[FetchUserSQL]),
-     FetchUserResult = emysql:execute(pushdice_pool, FetchUserSQL),
-     Recs = emysql_util:as_record(FetchUserResult, game_user, record_info(fields, game_user)),
+     %FetchUserSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~w'",[FetchUserId]),
+     %io:format("fetch user sql: recs: ~s~n",[FetchUserSQL]),
+     %FetchUserResult = emysql:execute(pushdice_pool, FetchUserSQL),
+     %Recs = emysql_util:as_record(FetchUserResult, game_user, record_info(fields, game_user)),
+
+     Recs = usermodel:getUser(pushdice_pool,integer_to_list(FetchUserId)),
      io:format("fetch user by session: recs: ~w~n",[Recs]),
 
      case Recs of 
