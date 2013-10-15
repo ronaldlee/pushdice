@@ -318,7 +318,7 @@ io:format("p2 wait for trust or not.. ~n"),
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
                 NewPot = Pot + P2Bind,
                 FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",P1Raise,"pot",NewPot},
-                wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,P2BuyIn-P2Bind,P1Raise,Bet,NewPot)
+                wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,P1Bind,P1BuyIn,NewP2BuyIn-P2Bind,P1Raise,Bet,NewPot)
             end
     end.
 
