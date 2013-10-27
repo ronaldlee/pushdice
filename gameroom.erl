@@ -451,12 +451,14 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                         (IsActualMatchCall) -> 
                             io:format("p1 call match actual! p2 lose.. ~n"),
                             FromPid ! {p2,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
-                            game_over(Player1_uid,win,Player2_uid,lose);
+                            game_over(Player1_uid,win,Player2_uid,lose,
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn);
                         true ->
                             io:format("p1 call NOT match actual! p2 win.. ~n"),
                             %update p2 player's coin by adding pot
                             FromPid ! {p2,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
-                            game_over(Player1_uid,lose,Player2_uid,win)
+                            game_over(Player1_uid,lose,Player2_uid,win,
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn)
                     end
                   end
             end
@@ -528,26 +530,29 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
                         (IsActualMatchCall) -> 
                             io:format("p2 call match actual! p1 lose.. ~n"),
                             FromPid ! {p1,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
-                            game_over(Player1_uid,lose,Player2_uid,win);
+                            game_over(Player1_uid,lose,Player2_uid,win,
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn);
                         true ->
                             io:format("p2 call NOT match actual! p1 win.. ~n"),
                             %update p2 player's coin by adding pot
                             FromPid ! {p1,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
-                            game_over(Player1_uid,win,Player2_uid,lose)
+                            game_over(Player1_uid,win,Player2_uid,lose,
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn)
                     end
                 end
             end
     end.
 
-game_over(Player1_uid, P1_result, Player2_uid, P2_result) ->
+game_over(Player1_uid, P1_result, Player2_uid, P2_result,
+          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn) ->
     receive 
         {check, FromPid} ->
-          FromPid ! [game_over,Player1_uid, P1_result, Player2_uid, P2_result],
-          game_over(Player1_uid, P1_result, Player2_uid, P2_result);
+          FromPid ! [game_over,Player1_uid, P1_result, Player2_uid, P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn],
+          game_over(Player1_uid, P1_result, Player2_uid, P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn);
         {kill, FromPid} ->
           true;
         _ ->
-          game_over(Player1_uid, P1_result, Player2_uid, P2_result)
+          game_over(Player1_uid, P1_result, Player2_uid, P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn)
     end.
 
 
@@ -802,21 +807,41 @@ io:format("check room 1 ~s-~w~n",[binary_to_list(RoomId),self()]),
     RoomPid ! {check,self()},
 io:format("check room 2 ~n"),
     receive
-        [game_over,Player1_uid, P1_result, Player2_uid, P2_result] ->
+        [game_over|Data] ->
+            [Player1_uid|Rest1] = Data,
+            [P1_result|Rest2] = Rest1,
+            [Player2_uid|Rest3] = Rest2,
+            [P2_result|Rest4] = Rest3,
+            [Pot|Rest5] = Rest4,
+            [Bet|Rest6] = Rest5,
+            [SortedCallDice|Rest7] = Rest6,
+            [SortedActualDice|Rest8] = Rest7,
+            [PrevSortedActualDice|Rest9] = Rest8,
+            [P1Bind|Rest10] = Rest9,
+            [P1BuyIn|Rest11] = Rest10,
+            [P2BuyIn|Rest12] = Rest11,
+            [PrevRaise|Rest13] = Rest12,
+            [OrigBuyIn|Rest14] = Rest13,
+%Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn
+
 io:format("GGGGGGGGGGGG AMMMMMMM ovERRRRRRRRRRRRRRR ~n"),
             {P1UserId,P1Username,P1PlatId,P1Coins} = getPlayerInfo(Player1_uid),
             {P2UserId,P2Username,P2PlatId,P2Coins} = getPlayerInfo(Player2_uid),
 
             if 
               (Player1_uid == P) ->
-                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,gameover},{p,p1},{result,P1_result},{p1,P1_result},{p2,P2_result},
+                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,gameover},{p,p1},{result,P1_result},
 {p1_uid,list_to_binary(Player1_uid)},{p1_name,P1Username},{p1_platid,P1PlatId},
-{p2_uid,list_to_binary(Player2_uid)},{p2_name,P2Username},{p2_platid,P2PlatId}
+{p2_uid,list_to_binary(Player2_uid)},{p2_name,P2Username},{p2_platid,P2PlatId},
+{pot,Pot},{bet,Bet},{currentcall,SortedCallDice},{currentdice,SortedActualDice},{lastdice,PrevSortedActualDice},
+{bind,P1Bind},{p1_buyin,P1BuyIn},{p2_buyin,P2BuyIn},{prev_raise,PrevRaise},{orig_buyin,OrigBuyIn}
 ]} }]);
               true ->
-                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,gameover},{p,p2},{result,P2_result},{p1,P1_result},{p2,P2_result},
+                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,gameover},{p,p2},{result,P2_result},
 {p1_uid,list_to_binary(Player1_uid)},{p1_name,P1Username},{p1_platid,P1PlatId},
-{p2_uid,list_to_binary(Player2_uid)},{p2_name,P2Username},{p2_platid,P2PlatId}
+{p2_uid,list_to_binary(Player2_uid)},{p2_name,P2Username},{p2_platid,P2PlatId},
+{pot,Pot},{bet,Bet},{currentcall,SortedCallDice},{currentdice,SortedActualDice},{lastdice,PrevSortedActualDice},
+{bind,P1Bind},{p1_buyin,P1BuyIn},{p2_buyin,P2BuyIn},{prev_raise,PrevRaise},{orig_buyin,OrigBuyIn}
 ]} }])
             end,
 io:format("check room user == P ~w~n",[NewMyTurnList]),
