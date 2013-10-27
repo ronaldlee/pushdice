@@ -451,12 +451,12 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                         (IsActualMatchCall) -> 
                             io:format("p1 call match actual! p2 lose.. ~n"),
                             FromPid ! {p2,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
-                            game_over();
+                            game_over(Player1_uid,win,Player2_uid,lose);
                         true ->
                             io:format("p1 call NOT match actual! p2 win.. ~n"),
                             %update p2 player's coin by adding pot
                             FromPid ! {p2,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
-                            game_over()
+                            game_over(Player1_uid,lose,Player2_uid,win)
                     end
                   end
             end
@@ -528,26 +528,26 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
                         (IsActualMatchCall) -> 
                             io:format("p2 call match actual! p1 lose.. ~n"),
                             FromPid ! {p1,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
-                            game_over();
+                            game_over(Player1_uid,lose,Player2_uid,win);
                         true ->
                             io:format("p2 call NOT match actual! p1 win.. ~n"),
                             %update p2 player's coin by adding pot
                             FromPid ! {p1,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
-                            game_over()
+                            game_over(Player1_uid,win,Player2_uid,lose)
                     end
                 end
             end
     end.
 
-game_over() ->
+game_over(Player1_uid, P1_result, Player2_uid, P2_result) ->
     receive 
         {check, FromPid} ->
-          FromPid ! [game_over],
-          game_over();
+          FromPid ! [game_over,Player1_uid, P1_result, Player2_uid, P2_result],
+          game_over(Player1_uid, P1_result, Player2_uid, P2_result);
         {kill, FromPid} ->
           true;
         _ ->
-          game_over()
+          game_over(Player1_uid, P1_result, Player2_uid, P2_result)
     end.
 
 
@@ -802,6 +802,25 @@ io:format("check room 1 ~s-~w~n",[binary_to_list(RoomId),self()]),
     RoomPid ! {check,self()},
 io:format("check room 2 ~n"),
     receive
+        [game_over,Player1_uid, P1_result, Player2_uid, P2_result] ->
+io:format("GGGGGGGGGGGG AMMMMMMM ovERRRRRRRRRRRRRRR ~n"),
+            {P1UserId,P1Username,P1PlatId,P1Coins} = getPlayerInfo(Player1_uid),
+            {P2UserId,P2Username,P2PlatId,P2Coins} = getPlayerInfo(Player2_uid),
+
+            if 
+              (Player1_uid == P) ->
+                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,gameover},{p,p1},{result,P1_result},{p1,P1_result},{p2,P2_result},
+{p1_uid,list_to_binary(Player1_uid)},{p1_name,P1Username},{p1_platid,P1PlatId},
+{p2_uid,list_to_binary(Player2_uid)},{p2_name,P2Username},{p2_platid,P2PlatId}
+]} }]);
+              true ->
+                NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,gameover},{p,p2},{result,P2_result},{p1,P1_result},{p2,P2_result},
+{p1_uid,list_to_binary(Player1_uid)},{p1_name,P1Username},{p1_platid,P1PlatId},
+{p2_uid,list_to_binary(Player2_uid)},{p2_name,P2Username},{p2_platid,P2PlatId}
+]} }])
+            end,
+io:format("check room user == P ~w~n",[NewMyTurnList]),
+            checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P);
         [PlayerID|Data] -> 
 io:format("check return ~n",[]),
             [PRole|Rest] = Data,
@@ -848,7 +867,6 @@ io:format("check room user == P ~w~n",[NewMyTurnList]),
 io:format("check room user != P ~w~n",[NewOthersTurnList]),
                 checkRoomTurns(Rooms,MyTurnList,NewOthersTurnList,P)
             end;
-        %[game_over] ->
         true -> 
             io:format("no match?~n"),
             checkRoomTurns(MyRoomsList,MyTurnList,OthersTurnList,P)
