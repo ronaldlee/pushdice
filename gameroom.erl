@@ -594,9 +594,11 @@ io:format("wait_for_p2_pick_dice_to_roll ~n"),
                 NewActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
                 %sort the result before returning
                 NewSortedActualDice = lists:sort(NewActualDice),
+
+                NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
                 FromPid ! {p2,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot},
-                wait_for_p2_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults)
+                wait_for_p2_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
             end
     end.
 
@@ -615,9 +617,10 @@ io:format("wait_for_p1_pick_dice_to_roll ~n"),
                 NewActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
                 %sort the result before returning
                 NewSortedActualDice = lists:sort(NewActualDice),
+                NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
                 FromPid ! {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot},
-                wait_for_p1_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults)
+                wait_for_p1_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
             end
     end.
 
@@ -650,16 +653,18 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
                     NewPot = Pot + P2Raise,
                     NewPrevRaise = P2Raise,
 
+                    NewAllP2Calls = lists:append(AllP2Calls,[P2SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
-                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults);
+                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot,AllP1Calls,NewAllP2Calls,AllDiceResults);
                 (P2SortedCallDiceScore > PrevSortedCallDiceScore) ->
                     io:format("P2 call is greater than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
                     %valid call
                     NewPot = Pot + P2Raise,
                     NewPrevRaise = P2Raise,
 
+                    NewAllP2Calls = lists:append(AllP2Calls,[P2SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
-                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults);
+                    wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot,AllP1Calls,NewAllP2Calls,AllDiceResults);
                 true ->
                     io:format("Invalid P2 call is less than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
                     FromPid ! {invalid_call,Pot},
@@ -699,16 +704,18 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
                     NewPot = Pot + P1Raise,
                     NewPrevRaise = P1Raise,
 
+                    NewAllP1Calls = lists:append(AllP1Calls,[P1SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
-                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults);
+                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults);
                 (P1SortedCallDiceScore > PrevSortedCallDiceScore) ->
                     io:format("P1 call is greater than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
                     %valid call
                     NewPot = Pot + P1Raise,
                     NewPrevRaise = P1Raise,
 
+                    NewAllP1Calls = lists:append(AllP1Calls,[P1SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
-                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults);
+                    wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults);
                 true ->
                     io:format("Invalid P1 call is less than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
                     FromPid ! {invalid_call,Pot},
