@@ -20,7 +20,7 @@ echo "****** p2 rooms: $result \n";
 echo "\n";
 }
 
-$result = file_get_contents("http://54.213.19.254/gameroom/init/p1_uid/$p1/p2_uid/$p2/bind/5/buyin/1000");
+$result = file_get_contents("http://54.213.19.254/gameroom/init/p1_uid/$p1/p2_uid/$p2/bind/10/buyin/1000");
 echo "p1 create game and roll dice: $result \n";
 echo "\n";
 $json = json_decode($result,true);

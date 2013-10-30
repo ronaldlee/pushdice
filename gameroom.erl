@@ -309,7 +309,7 @@ io:format("dice score ~w~n",[IsValid]),
 
                     %append P1SortedCallDice to ALLP1Calls 
                     NewAllP1Calls = lists:append(AllP1Calls,[P1SortedCallDice]),
-                    wait_for_p2_acceptgame(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,P1Raise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults)
+                    wait_for_p2_acceptgame(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,P1Raise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults)
               end
             end;
         _ -> 
