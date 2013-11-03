@@ -92,7 +92,7 @@ out(Arg) ->
      emysql:remove_pool(pushdice_pool),
      HtmlOut.
 
-out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", AccessToken]) -> 
+out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", AccessToken, "ios_pushtoken", IOSPushToken]) -> 
      CryptoStatus = crypto:start(),
      io:format("cryp: ~w~n",[CryptoStatus]),
 
@@ -114,7 +114,7 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
          %InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,consecutive_days_played,coins,last_play_date) values ('~s','~s','~s','~s','1','1000',NULL)",[Username,Id,Type,AccessToken]),
          %io:format("mysqlllll insert sql: ~s~n",[InsertSql]),
          %InsertResult = emysql:execute(pushdice_pool, InsertSql),
-         InsertResult = usermodel:createUser(pushdice_pool,Username,Id,Type,AccessToken),
+         InsertResult = usermodel:createUser(pushdice_pool,Username,Id,Type,AccessToken,IOSPushToken),
          io:format("mysqlllll insert result: ~w~n",[InsertResult]),
 
          case InsertResult of 
@@ -130,6 +130,9 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
          io:format("mysqlllll found user~n",[]),
          [{game_user,NewUserId,FoundUsername,FoundId,FoundType,{datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
              ConsecDaysPlayed,IsUnlocked,Coins} | _ ] = Recs,
+
+         %update ios token
+         usermodel:updateIOSPushToken(pushdice_pool,integer_to_list(NewUserId),IOSPushToken),
 
          LastPlayTime = calendar:datetime_to_gregorian_seconds({{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}),
 
