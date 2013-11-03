@@ -307,6 +307,11 @@ io:format("dice score ~w~n",[IsValid]),
                     FromPid ! {valid_call,Pot},
                     NewPot = Pot+P1Raise,
 
+                    {ok, C} = eredis:start_link(),
+                    PushNotiData = io_lib:format("{\"action\":\"makecall\", \"p1\":\"~s\", \"p2\":\"~s\"}",[Player1_uid,Player2_uid]),
+                    eredis:q(C, ["RPUSH", "PUSHDICE_IOS_PUSH_NOTI", PushNotiData]),
+                    eredis:stop(C),
+
                     %append P1SortedCallDice to ALLP1Calls 
                     NewAllP1Calls = lists:append(AllP1Calls,[P1SortedCallDice]),
                     wait_for_p2_acceptgame(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,P1Raise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults)
@@ -655,6 +660,12 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
 
                     NewAllP2Calls = lists:append(AllP2Calls,[P2SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
+
+                    {ok, C} = eredis:start_link(),
+                    PushNotiData = io_lib:format("{\"action\":\"p2_call\", \"p1\":\"~s\", \"p2\":\"~s\"}",[Player1_uid,Player2_uid]),
+                    eredis:q(C, ["RPUSH", "PUSHDICE_IOS_PUSH_NOTI", PushNotiData]),
+                    eredis:stop(C),
+
                     wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot,AllP1Calls,NewAllP2Calls,AllDiceResults);
                 (P2SortedCallDiceScore > PrevSortedCallDiceScore) ->
                     io:format("P2 call is greater than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
@@ -664,6 +675,12 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
 
                     NewAllP2Calls = lists:append(AllP2Calls,[P2SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
+
+                    {ok, C} = eredis:start_link(),
+                    PushNotiData = io_lib:format("{\"action\":\"p2_call\", \"p1\":\"~s\", \"p2\":\"~s\"}",[Player1_uid,Player2_uid]),
+                    eredis:q(C, ["RPUSH", "PUSHDICE_IOS_PUSH_NOTI", PushNotiData]),
+                    eredis:stop(C),
+
                     wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot,AllP1Calls,NewAllP2Calls,AllDiceResults);
                 true ->
                     io:format("Invalid P2 call is less than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
@@ -706,6 +723,12 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
 
                     NewAllP1Calls = lists:append(AllP1Calls,[P1SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
+
+                    {ok, C} = eredis:start_link(),
+                    PushNotiData = io_lib:format("{\"action\":\"p1_call\", \"p1\":\"~s\", \"p2\":\"~s\"}",[Player1_uid,Player2_uid]),
+                    eredis:q(C, ["RPUSH", "PUSHDICE_IOS_PUSH_NOTI", PushNotiData]),
+                    eredis:stop(C),
+
                     wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults);
                 (P1SortedCallDiceScore > PrevSortedCallDiceScore) ->
                     io:format("P1 call is greater than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
@@ -715,6 +738,12 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
 
                     NewAllP1Calls = lists:append(AllP1Calls,[P1SortedCallDice]),
                     FromPid ! {valid_call,NewPot},
+
+                    {ok, C} = eredis:start_link(),
+                    PushNotiData = io_lib:format("{\"action\":\"p1_call\", \"p1\":\"~s\", \"p2\":\"~s\"}",[Player1_uid,Player2_uid]),
+                    eredis:q(C, ["RPUSH", "PUSHDICE_IOS_PUSH_NOTI", PushNotiData]),
+                    eredis:stop(C),
+
                     wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults);
                 true ->
                     io:format("Invalid P1 call is less than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
