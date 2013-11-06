@@ -29,6 +29,8 @@ if (isset($json['pid'])) {
     $pid = $json['pid'];  
 }
 
+showRoom($p1,$p2);
+
 //p1 make call
 $raise=2;
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/1/1/1/9/9/raise/$raise");
