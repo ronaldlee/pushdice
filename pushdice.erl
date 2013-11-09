@@ -38,7 +38,6 @@ processFBFriendsJson([FriendData|Rest],FriendsList ) ->
   {_,Name} = NameData,
   {_,FBID} = IdData,
   NewFBData = [{name,Name},{id,FBID}],
-  %NewFBData = {name,io_lib:format("~s",[Name])},{id,io_lib:format("~s",[IdData])},
   NewFriendsList = lists:append(FriendsList,[NewFBData]),
 io:format("boo ~w~n",[NewFriendsList]),
   processFBFriendsJson(Rest,NewFriendsList).
@@ -47,11 +46,7 @@ populateFriendsList([],FBFriendsList,GamePlayersList) ->
   {FBFriendsList,GamePlayersList};
 populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList) ->
   {FB_UID,FB_ID_NAME} = FB_data,
-%io:format("fb uid: ~s~n",[FB_UID]),
   %check if FB user is also a player
-  %SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE plat_id='~s'",[FB_UID]),
-  %SelectResult = emysql:execute(pushdice_pool, SelectSQL),
-  %Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
   Recs = usermodel:getUserByPlatID(pushdice_pool,FB_UID,fb),
   SelectLength = length(Recs),
   case SelectLength of
@@ -59,10 +54,11 @@ populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList) ->
      [{game_user,NewUserId,FoundUsername,FoundId,FoundType,{datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
              ConsecDaysPlayed,IsUnlocked,Coins} | _ ] = Recs,
 
+      %check if the player already has a game playing with this user.
+
       {FBIDKey,FBSTRUCT} = FB_data,
       {struct,[FBNAME,FBID]} = FBSTRUCT,
       New_user_data = {FBIDKey,{struct,[FBNAME,FBID,{uid,NewUserId}]}},
-%io:format("hihi: ~w~n",[New_user_data]),
       NewGamePlayersList = lists:append(GamePlayersList,[New_user_data]),
       populateFriendsList(Rest,FBFriendsList,NewGamePlayersList);
     0->
@@ -96,11 +92,6 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
      CryptoStatus = crypto:start(),
      io:format("cryp: ~w~n",[CryptoStatus]),
 
-
-     %SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE name='~s' and plat_id='~s' and plat_type='~s'",[Username,Id,Type]),
-     %SelectResult = emysql:execute(pushdice_pool, SelectSQL),
-     %Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
-
      Recs = usermodel:getUserByUsernameAndPlatID(pushdice_pool,Username,Id,Type),
      SelectLength = length(Recs),
      io:format("mysqlllll recs ~w~n",[Recs]),
@@ -111,9 +102,6 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
          %new user, no daily bonus
          DailyBonus = false, 
 
-         %InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,consecutive_days_played,coins,last_play_date) values ('~s','~s','~s','~s','1','1000',NULL)",[Username,Id,Type,AccessToken]),
-         %io:format("mysqlllll insert sql: ~s~n",[InsertSql]),
-         %InsertResult = emysql:execute(pushdice_pool, InsertSql),
          InsertResult = usermodel:createUser(pushdice_pool,Username,Id,Type,AccessToken,IOSPushToken),
          io:format("mysqlllll insert result: ~w~n",[InsertResult]),
 
@@ -146,14 +134,10 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type, "accesstoken", 
              %consecutive play, daily bonus
              DailyBonus = true,
 
-             %UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=consecutive_days_played+1 WHERE user_id='~w'",[NewUserId]),
-             %UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL);
              UpdateConsecDaysPlayedResult = usermodel:incrementLastPlayAndConsecDaysPlayed(pushdice_pool,integer_to_list(NewUserId));
              true ->
              %not consec day play, reset to 1
              DailyBonus = false,
-             %UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=1 WHERE user_id='~w'",[NewUserId]),
-             %UpdateConsecDaysPlayedResult = emysql:execute(pushdice_pool, UpdateConsecDaysPlayedSQL)
              UpdateConsecDaysPlayedResult = usermodel:resetLastPlayAndConsecDaysPlayed(pushdice_pool,integer_to_list(NewUserId))
          end,
          io:format("mysqlllll found LastPlayTime ~w, ~w ~w~n",[LastPlayTime, LocalTime, TimeDiff]),
@@ -186,22 +170,13 @@ out(Arg, ["login", "username", Username, "id", Id, "type", Type]) ->
      out(Arg,["login", "username", Username, "id", Id, "type", Type, "accesstoken", ""]);
 
 out(Arg, ["user", "session", Session]) -> 
-     io:format("XXXXX user~n",[]),
      %get user info from session
-     FetchUserSessionCacheKey = string:concat("pd_session_",Session),
-     io:format("XXXXX user 1~n",[]),
-     FetchUserBinData = erlmc:get(FetchUserSessionCacheKey),
-     io:format("XXXXX user 2~n",[]),
-     FetchUserData = binary_to_term(FetchUserBinData),
-     io:format("XXXXX user 3 ~w~n",[FetchUserData]),
-     {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} = FetchUserData,
-     io:format("XXXXX user 4~n",[]),
+     %FetchUserSessionCacheKey = string:concat("pd_session_",Session),
+     %FetchUserBinData = erlmc:get(FetchUserSessionCacheKey),
+     %FetchUserData = binary_to_term(FetchUserBinData),
+     %{{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} = FetchUserData,
 
-     %use FetchUserId to fetch more user data from db
-     %FetchUserSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~w'",[FetchUserId]),
-     %io:format("fetch user sql: recs: ~s~n",[FetchUserSQL]),
-     %FetchUserResult = emysql:execute(pushdice_pool, FetchUserSQL),
-     %Recs = emysql_util:as_record(FetchUserResult, game_user, record_info(fields, game_user)),
+     {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} = usermodel:getUserSessionData(Session),
 
      Recs = usermodel:getUser(pushdice_pool,integer_to_list(FetchUserId)),
      io:format("fetch user by session: recs: ~w~n",[Recs]),
@@ -215,7 +190,7 @@ out(Arg, ["user", "session", Session]) ->
              {html, "{'code':'-1', 'msg':'Fail to get user data from session.'}"}
       end;
 
-out(Arg, ["friends", "accesstoken", AccessToken]) -> 
+out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) -> 
      FBFriendsGraphURL = io_lib:format("https://graph.facebook.com/me/friends?&limit=5000&offset=0&access_token=~s",[AccessToken]),
      io:format("fetch friends url: ~s~n",[FBFriendsGraphURL]),
      inets:start(),
@@ -236,39 +211,31 @@ out(Arg, ["friends", "accesstoken", AccessToken]) ->
 
            ConvertFun = fun([{name,X},{id,Y}]) -> 
                io:format("uuu ~s,~s~n",[binary_to_list(X),binary_to_list(Y)]), 
-               %{struct,[{name,io_lib:format("~s",[binary_to_list(X)])},{id,io_lib:format("~s",[binary_to_list(Y)])}]} 
                {Y,{struct,[{name,X},{fbuid,Y}]}} 
            end,
 
-           %ConvertFun = fun({X,Y}) -> {X,Y} end,
            StringConverted = lists:map(ConvertFun, TrimmdFriendsList),
-%io:format("out1: ~w~n",[StringConverted]),
 
+           %get the user id, for getting the friends_game map from redis to see 
+           %if friends already have a game with this user.
+           FetchUserData = usermodel:getUserSessionData(Session),
+           case FetchUserData of
+               {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} ->
 
-           {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[]),
+                 %can we grab the game list and put it in a hashtable?
+
+                 {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[]),
 %io:format("fb friend: ~w~n",[FBFriendsList]),
 io:format("player friend: ~w~n",[GamePlayersList]),
 
-           %Output = mochijson2:encode({struct, StringConverted}),
-           Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
-
-           %Output = mochijson2:encode({struct, TrimmdFriendsList}),
-%io:format("out: ~w~n",[Output]),
-io:format("out: ~n",[]),
-
-           {html, Output};
+                 Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
+                 {html, Output};
+               true ->
+                 {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
+           end;
          400 ->
-           {html, Body};
+           {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"};
          true ->
-           {html, Body}
+           {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
      end.
-
-     %{ok, Result} = httpc:request(FBFriendsGraphURL),
-     %{html, Result}.
-
-
     
-%% out(Arg, [Fbusername]) -> 
-%%     inets:start(),
-%%     {ok, {{Version, 200, ReasonPhrase}, Headers, Body}} = httpc:request("http://www.erlang.org"),
-%%     {html, Body}.
