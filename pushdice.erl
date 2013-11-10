@@ -42,9 +42,9 @@ processFBFriendsJson([FriendData|Rest],FriendsList ) ->
 io:format("boo ~w~n",[NewFriendsList]),
   processFBFriendsJson(Rest,NewFriendsList).
 
-populateFriendsList([],FBFriendsList,GamePlayersList) ->
+populateFriendsList([],FBFriendsList,GamePlayersList,PushFriendsGamesList) ->
   {FBFriendsList,GamePlayersList};
-populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList) ->
+populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList,PushFriendsGamesList) ->
   {FB_UID,FB_ID_NAME} = FB_data,
   %check if FB user is also a player
   Recs = usermodel:getUserByPlatID(pushdice_pool,FB_UID,fb),
@@ -55,17 +55,21 @@ populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList) ->
              ConsecDaysPlayed,IsUnlocked,Coins} | _ ] = Recs,
 
       %check if the player already has a game playing with this user.
-
-      {FBIDKey,FBSTRUCT} = FB_data,
-      {struct,[FBNAME,FBID]} = FBSTRUCT,
-      New_user_data = {FBIDKey,{struct,[FBNAME,FBID,{uid,NewUserId}]}},
-      NewGamePlayersList = lists:append(GamePlayersList,[New_user_data]),
-      populateFriendsList(Rest,FBFriendsList,NewGamePlayersList);
+      case lists:member(FB_UID,PushFriendsGamesList) of
+        true ->
+          populateFriendsList(Rest,FBFriendsList,GamePlayersList,PushFriendsGamesList); %skip this friends coz it has a game session currently 
+        false ->
+          {FBIDKey,FBSTRUCT} = FB_data,
+          {struct,[FBNAME,FBID]} = FBSTRUCT,
+          New_user_data = {FBIDKey,{struct,[FBNAME,FBID,{uid,NewUserId}]}},
+          NewGamePlayersList = lists:append(GamePlayersList,[New_user_data]),
+          populateFriendsList(Rest,FBFriendsList,NewGamePlayersList,PushFriendsGamesList)
+      end;
     0->
       NewFBFriendsList = lists:append(FBFriendsList,[FB_data]),
-      populateFriendsList(Rest,NewFBFriendsList,GamePlayersList);
+      populateFriendsList(Rest,NewFBFriendsList,GamePlayersList,PushFriendsGamesList);
     true->
-      populateFriendsList(Rest,FBFriendsList,GamePlayersList) 
+      populateFriendsList(Rest,FBFriendsList,GamePlayersList,PushFriendsGamesList) 
   end.
 
 %%%%%%%%%%%%%%%%%%%%
@@ -216,20 +220,29 @@ out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) ->
 
            StringConverted = lists:map(ConvertFun, TrimmdFriendsList),
 
-           %get the user id, for getting the friends_game map from redis to see 
-           %if friends already have a game with this user.
            FetchUserData = usermodel:getUserSessionData(Session),
            case FetchUserData of
                {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} ->
 
+                 %get the user id, for getting the friends_game map from redis to see 
+                 %if friends already have a game with this user.
                  %can we grab the game list and put it in a hashtable?
+                 PushFriendsGamesKey = io_lib:format("pfg_~s",[FetchUserId]),
 
-                 {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[]),
+                 {ok, C} = eredis:start_link(),
+                 PushFriendsGamesListResponse = eredis:q(C, ["SMEMBERS", PushFriendsGamesKey]),
+
+                 case PushFriendsGamesListResponse of 
+                   {ok, PushFriendsGamesList} ->
+                     {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[],PushFriendsGamesList),
 %io:format("fb friend: ~w~n",[FBFriendsList]),
 io:format("player friend: ~w~n",[GamePlayersList]),
 
-                 Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
-                 {html, Output};
+                     Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
+                     {html, Output};
+                   true ->
+                     {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
+                 end;
                true ->
                  {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
            end;

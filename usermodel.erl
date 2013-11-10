@@ -47,7 +47,7 @@ updateIOSPushToken(DB_pool,UID,IOSPushToken) ->
 getUserSessionData(Session) ->
  FetchUserSessionCacheKey = string:concat("pd_session_",Session),
  FetchUserBinData = erlmc:get(FetchUserSessionCacheKey),
- FetchUserData = binary_to_term(FetchUserBinData).
+ binary_to_term(FetchUserBinData).
 
 
 
