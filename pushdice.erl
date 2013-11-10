@@ -241,7 +241,10 @@ io:format("player friend: ~w~n",[GamePlayersList]),
                      Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
                      {html, Output};
                    true ->
-                     {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
+                     {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[],[]),
+
+                     Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
+                     {html, Output}
                  end;
                true ->
                  {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
