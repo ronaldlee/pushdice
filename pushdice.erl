@@ -221,19 +221,24 @@ out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) ->
            StringConverted = lists:map(ConvertFun, TrimmdFriendsList),
 
            FetchUserData = usermodel:getUserSessionData(Session),
+
            case FetchUserData of
                {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} ->
-
                  %get the user id, for getting the friends_game map from redis to see 
                  %if friends already have a game with this user.
                  %can we grab the game list and put it in a hashtable?
-                 PushFriendsGamesKey = io_lib:format("pfg_~s",[FetchUserId]),
+                 PushFriendsGamesKey = io_lib:format("pfg_~w",[FetchUserId]),
 
                  {ok, C} = eredis:start_link(),
                  PushFriendsGamesListResponse = eredis:q(C, ["SMEMBERS", PushFriendsGamesKey]),
+                 eredis:stop(C),
 
-                 case PushFriendsGamesListResponse of 
+                 FakeResponse = {ok, [1200561,223593]},
+
+                 %case PushFriendsGamesListResponse of 
+                 case FakeResponse of 
                    {ok, PushFriendsGamesList} ->
+io:format("has friends games set: ~n"), 
                      {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[],PushFriendsGamesList),
 %io:format("fb friend: ~w~n",[FBFriendsList]),
 io:format("player friend: ~w~n",[GamePlayersList]),
@@ -241,12 +246,14 @@ io:format("player friend: ~w~n",[GamePlayersList]),
                      Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
                      {html, Output};
                    true ->
+io:format("no friends games set: ~n"), 
                      {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[],[]),
 
                      Output = mochijson2:encode({struct,[{fb_friends,{struct,FBFriendsList}},{players,{struct,GamePlayersList}}]}),
                      {html, Output}
                  end;
                true ->
+io:format("session error! ~n"), 
                  {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
            end;
          400 ->
