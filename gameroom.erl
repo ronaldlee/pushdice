@@ -337,6 +337,18 @@ io:format("p2 ACCEPT ~n"),
                 FromPid ! invalid_player,
                 wait_for_p2_acceptgame(?STATE);
               true ->    
+
+                %register this user to the p1's game session list
+                Player1FriendsGamesKey = io_lib:format("pfg_~s",[Player1_uid]),
+                Player2FriendsGamesKey = io_lib:format("pfg_~s",[Player2_uid]),
+
+io:format("keys: p1: ~s; ~s~n",[Player1FriendsGamesKey,Player2FriendsGamesKey]),
+
+                {ok, C} = eredis:start_link(),
+                eredis:q(C, ["SADD", Player1FriendsGamesKey, Player2_uid]),
+                eredis:q(C, ["SADD", Player2FriendsGamesKey, Player1_uid]),
+                eredis:stop(C),
+
 io:format("p2 wait for trust or not.. ~n"),
                 SortedCallDiceScore = getDiceScore(SortedCallDice),
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
@@ -845,6 +857,8 @@ io:format("check room 1 ~s-~w~n",[binary_to_list(RoomId),self()]),
 io:format("check room 2 ~n"),
     receive
         [game_over|Data] ->
+
+
             [Player1_uid|Rest1] = Data,
             [P1_result|Rest2] = Rest1,
             [Player2_uid|Rest3] = Rest2,
@@ -860,6 +874,15 @@ io:format("check room 2 ~n"),
             [PrevRaise|Rest13] = Rest12,
             [OrigBuyIn|Rest14] = Rest13,
 %Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn
+
+            %deregister p1 p2 game list
+            Player1FriendsGamesKey = io_lib:format("pfg_~s",[Player1_uid]),
+            Player2FriendsGamesKey = io_lib:format("pfg_~s",[Player2_uid]),
+
+            {ok, C} = eredis:start_link(),
+            eredis:q(C, ["SREM", Player1FriendsGamesKey, Player2_uid]),
+            eredis:q(C, ["SREM", Player2FriendsGamesKey, Player1_uid]),
+            eredis:stop(C),
 
 io:format("GGGGGGGGGGGG AMMMMMMM ovERRRRRRRRRRRRRRR ~n"),
             {P1UserId,P1Username,P1PlatId,P1Coins} = getPlayerInfo(Player1_uid),
