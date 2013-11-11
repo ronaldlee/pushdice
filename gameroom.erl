@@ -353,7 +353,7 @@ io:format("p2 wait for trust or not.. ~n"),
                 SortedCallDiceScore = getDiceScore(SortedCallDice),
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
                 NewPot = Pot + P2Bind,
-                FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",NewPot},
+                FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",NewPot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,[],P1Bind,OrigBuyIn,P1BuyIn,NewP2BuyIn-P2Bind,PrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults)
             end
     end.
@@ -372,7 +372,7 @@ wait_for_p2_findcall(?STATE) ->
               true ->    
                 SortedCallDiceScore = getDiceScore(SortedCallDice),
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
-                FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot},
+                FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p2_trust_or_not(?STATE)
             end
     end.
@@ -391,7 +391,7 @@ wait_for_p1_findcall(?STATE) ->
               true ->    
                 SortedCallDiceScore = getDiceScore(SortedCallDice),
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
-                FromPid ! {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot},
+                FromPid ! {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p1_trust_or_not(?STATE)
             end
     end.
@@ -1024,9 +1024,9 @@ out(Arg, [Pid, "accept_game", "p2_uid", Player2_uid,"bind",P2Bind, "buyin",P2Buy
     io:format("accept_game. ~w~n",[list_to_pid(Pid)]),
     accept_game(list_to_pid(Pid), Player2_uid, list_to_integer(P2Bind),list_to_integer(P2BuyIn)),
     receive
-        {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot} ->
+        {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
 io:format("p1_calldice. ~n",[]),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot},{dice_score,SortedCallDiceScore}]}),
             {html, P1DiceResultJsonStr}
     end;
 
@@ -1067,9 +1067,9 @@ out(Arg, [Pid, "find_call", "p2_uid", Player2_uid]) ->
     io:format("p2 find out p1 call. ~n",[]),
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
-        {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot} ->
+        {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
     io:format("p1_calldice. ~n",[]),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot},{dice_score,SortedCallDiceScore}]}),
             {html, P1DiceResultJsonStr}
     end;
 
@@ -1077,9 +1077,9 @@ out(Arg, [Pid, "find_call", "p1_uid", Player1_uid]) ->
     io:format("p1 find out p2 call. ~n",[]),
     player1_findcall(list_to_pid(Pid),Player1_uid),
     receive
-        {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot} ->
+        {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
     io:format("p2_calldice. ~n",[]),
-            P2DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot}]}),
+            P2DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot},{dice_score,SortedCallDiceScore}]}),
             {html, P2DiceResultJsonStr}
     end;
 

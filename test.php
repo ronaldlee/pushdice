@@ -8,10 +8,11 @@
 +---------+---------+-------+-----------------+-----------+----------------+---------------------+---------------------+-------------------------+-------------+----------------+
 */
 $p1="58"; //Ace Dev
-$p2="59"; //Ricky Lee
+//$p2="59"; //Ricky Lee
+$p2="57"; //Boo1
 
 echo "P1: $p1: Ace Dev\n";
-echo "P2: $p2: Ricky Lee\n";
+echo "P2: $p2: Boo1\n";
 
 /*
 $p1="11";
@@ -20,7 +21,7 @@ $p2="22";
 
 
 function showRoom($p1,$p2) {
-$is_show=false;
+$is_show=true;
 //get rooms
 $comb_result = array();
 $result = file_get_contents("http://54.213.19.254/gameroom/list/uid/$p1");
@@ -57,18 +58,18 @@ echo "p2: " . json_encode($comb_result['p2']) ."\n";
 
 //p1 make call
 $raise=2;
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/1/1/1/9/9/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/1/4/4/9/9/raise/$raise");
 echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
 $comb_result = showRoom($p1,$p2);
 
+/*
 echo "after makecall:\n";
 echo "p1: " . json_encode($comb_result['p1']) ."\n";
 echo "p2: " . json_encode($comb_result['p2']) ."\n";
 
-/*
 foreach ($comb_result['p1']['othersturn'] as $data) {
   if ($data['p'] != "p2") {
     echo "error: p1 accept_game: p not p2 !\n"; exit;
@@ -103,9 +104,11 @@ $json = json_decode($result,true);
 
 $comb_result = showRoom($p1,$p2);
 
+/*
 echo "after acceptgame \n";
 echo "p1: " . json_encode($comb_result['p1']) ."\n";
 echo "p2: " . json_encode($comb_result['p2']) ."\n";
+*/
 
 //p2 trust
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/trust/p2_uid/$p2/bet/10");
