@@ -3,6 +3,12 @@
 -compile(export_all).
 -record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
 -define(MAX_DICE_SCORE,90).
+%2 days
+%-define(EXPIRE_GAME_DURATION_IN_MSEC,172800000).
+
+%5minutes
+-define(EXPIRE_GAME_DURATION_IN_MSEC,30000).
+
 -define(STATE,Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults).
 -define(CHECK_STATE,pot,Pot,bet,Bet,sorted_call_dice,SortedCallDice,sorted_actual_dice,SortedActualDice,prev_sorted_actual_dice,PrevSortedActualDice,p1_bind,P1Bind, p1_buyin,P1BuyIn, p2_buyin,P2BuyIn,prev_raise,PrevRaise,orig_buyin,OrigBuyIn,all_p1_calls,AllP1Calls,all_p2_calls,AllP2Calls,all_dice_results,AllDiceResults).
 
@@ -321,7 +327,10 @@ io:format("dice score ~w~n",[IsValid]),
             end;
         _ -> 
             io:format("whatt!! ~n",[])
-            
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, lose, Player2_uid, win,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 wait_for_p2_acceptgame(?STATE) ->
@@ -356,6 +365,10 @@ io:format("p2 wait for trust or not.. ~n"),
                 FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",NewPot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,[],P1Bind,OrigBuyIn,P1BuyIn,NewP2BuyIn-P2Bind,PrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults)
             end
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, win , Player2_uid, lose,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 wait_for_p2_findcall(?STATE) ->
@@ -375,6 +388,10 @@ wait_for_p2_findcall(?STATE) ->
                 FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p2_trust_or_not(?STATE)
             end
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, win , Player2_uid, lose,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 wait_for_p1_findcall(?STATE) ->
@@ -394,6 +411,10 @@ wait_for_p1_findcall(?STATE) ->
                 FromPid ! {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p1_trust_or_not(?STATE)
             end
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, lose , Player2_uid, win,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 %append wildcard "9" to fill up the list to lenght 5.
@@ -474,16 +495,20 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                             io:format("p1 call match actual! p2 lose.. ~n"),
                             FromPid ! {p2,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
                             game_over(Player1_uid,win,Player2_uid,lose,
-                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn);
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false);
                         true ->
                             io:format("p1 call NOT match actual! p2 win.. ~n"),
                             %update p2 player's coin by adding pot
                             FromPid ! {p2,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
                             game_over(Player1_uid,lose,Player2_uid,win,
-                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn)
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false)
                     end
                   end
             end
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, win, Player2_uid, lose,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 wait_for_p1_trust_or_not(?STATE) ->
@@ -553,28 +578,32 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
                             io:format("p2 call match actual! p1 lose.. ~n"),
                             FromPid ! {p1,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
                             game_over(Player1_uid,lose,Player2_uid,win,
-                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn);
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false);
                         true ->
                             io:format("p2 call NOT match actual! p1 win.. ~n"),
                             %update p2 player's coin by adding pot
                             FromPid ! {p1,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
                             game_over(Player1_uid,win,Player2_uid,lose,
-                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn)
+                                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false)
                     end
                 end
             end
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, lose, Player2_uid, win,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 game_over(Player1_uid, P1_result, Player2_uid, P2_result,
-          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn) ->
+          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,IsExpire) ->
     receive 
         {check, FromPid} ->
-          FromPid ! [game_over,Player1_uid, P1_result, Player2_uid, P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn],
-          game_over(Player1_uid, P1_result, Player2_uid, P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn);
+          FromPid ! [game_over,Player1_uid, P1_result, Player2_uid, P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,IsExpire],
+          game_over(Player1_uid,P1_result,Player2_uid,P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,IsExpire);
         {kill, FromPid} ->
           true;
         _ ->
-          game_over(Player1_uid, P1_result, Player2_uid, P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn)
+          game_over(Player1_uid,P1_result,Player2_uid,P2_result,Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,IsExpire)
     end.
 
 
@@ -619,6 +648,10 @@ io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
                 FromPid ! {p2,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot},
                 wait_for_p2_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
             end
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, win, Player2_uid, lose,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 wait_for_p1_pick_dice_to_roll(?STATE) ->
@@ -641,6 +674,10 @@ io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
                 FromPid ! {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot},
                 wait_for_p1_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
             end
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, lose, Player2_uid, win,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 wait_for_p2_call(?STATE) ->
@@ -704,6 +741,10 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
             end;
         true -> 
             wait_for_p2_call(?STATE) 
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, win, Player2_uid, lose,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 wait_for_p1_call(?STATE) ->
@@ -768,6 +809,10 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
         true -> 
 io:format("wait_for_p1_call others..."),
             wait_for_p1_call(?STATE)
+    after
+        ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            game_over(Player1_uid, lose, Player2_uid, win,
+                      Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -873,6 +918,7 @@ io:format("check room 2 ~n"),
             [P2BuyIn|Rest12] = Rest11,
             [PrevRaise|Rest13] = Rest12,
             [OrigBuyIn|Rest14] = Rest13,
+            [IsExpire|Rest15] = Rest14,
 %Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn
 
             %deregister p1 p2 game list
