@@ -8,7 +8,10 @@
 +---------+---------+-------+-----------------+-----------+----------------+---------------------+---------------------+-------------------------+-------------+----------------+
 */
 $p1="58"; //Ace Dev
-$p2="57"; //Boo1
+$p2="59"; //Ricky Lee
+
+echo "P1: $p1: Ace Dev\n";
+echo "P2: $p2: Ricky Lee\n";
 
 /*
 $p1="11";
@@ -17,14 +20,25 @@ $p2="22";
 
 
 function showRoom($p1,$p2) {
+$is_show=false;
 //get rooms
+$comb_result = array();
 $result = file_get_contents("http://54.213.19.254/gameroom/list/uid/$p1");
+
+$comb_result['p1'] = json_decode($result,true);
+if ($is_show) {
 echo "****** p1 rooms: $result \n";
 echo "\n";
+}
 
 $result = file_get_contents("http://54.213.19.254/gameroom/list/uid/$p2");
+$comb_result['p2'] = json_decode($result,true);
+if ($is_show) {
 echo "****** p2 rooms: $result \n";
 echo "\n";
+}
+
+return $comb_result;
 }
 
 $result = file_get_contents("http://54.213.19.254/gameroom/init/p1_uid/$p1/p2_uid/$p2/bind/10/buyin/1000");
@@ -36,7 +50,10 @@ if (isset($json['pid'])) {
     $pid = $json['pid'];  
 }
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
+echo "after init:\n";
+echo "p1: " . json_encode($comb_result['p1']) ."\n";
+echo "p2: " . json_encode($comb_result['p2']) ."\n";
 
 //p1 make call
 $raise=2;
@@ -45,7 +62,38 @@ echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
+
+echo "after makecall:\n";
+echo "p1: " . json_encode($comb_result['p1']) ."\n";
+echo "p2: " . json_encode($comb_result['p2']) ."\n";
+
+/*
+foreach ($comb_result['p1']['othersturn'] as $data) {
+  if ($data['p'] != "p2") {
+    echo "error: p1 accept_game: p not p2 !\n"; exit;
+  }
+  if ($data['puid'] != "$p2") {
+    echo "error: p1 accept_game: wrong puid !\n"; exit;
+  }
+  if ($data['opp_uid'] != "$p1") {
+    echo "error: p1 accept_game: wrong opp_uid !\n"; exit;
+  }
+  break;
+}
+foreach ($comb_result['p2']['myturn'] as $data) {
+  if ($data['p'] != "p2") {
+    echo "error: p2 accept_game: p not p2 !\n"; exit;
+  }
+  if ($data['puid'] != "$p2") {
+    echo "error: p2 accept_game: wrong puid !\n"; exit;
+  }
+  if ($data['opp_uid'] != "$p1") {
+    echo "error: p2 accept_game: wrong opp_uid !\n"; exit;
+  }
+  break;
+}
+*/
 
 //p2 accept game 
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/accept_game/p2_uid/$p2/bind/10/buyin/1000");
@@ -53,7 +101,11 @@ echo "p2 accept game: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
+
+echo "after acceptgame \n";
+echo "p1: " . json_encode($comb_result['p1']) ."\n";
+echo "p2: " . json_encode($comb_result['p2']) ."\n";
 
 //p2 trust
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/trust/p2_uid/$p2/bet/10");
@@ -70,7 +122,7 @@ echo "p2 reroll: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p2 make call
 $raise=12;
@@ -79,7 +131,7 @@ echo "p2 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p1 receive p2 call
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/find_call/p1_uid/$p1");
@@ -87,7 +139,7 @@ echo "p1 receive p2: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p1 trust
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/trust/p1_uid/$p1/bet/20");
@@ -95,7 +147,7 @@ echo "p1 trust: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p1 reroll dice
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/rerolldice/p1_uid/$p1/dice_pos/0/0/1/0/1");
@@ -104,7 +156,7 @@ echo "p1 reroll: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p1 make call
 $raise=2;
@@ -114,7 +166,7 @@ echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p2 receive p1 call
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/find_call/p2_uid/$p2");
@@ -122,7 +174,7 @@ echo "p2 receive p1: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p2 trust
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/trust/p2_uid/$p2/bet/18");
@@ -133,7 +185,7 @@ if (isset($json['code']) && $json['code']=="invalid_bet") {
 exit;
 }
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p2 reroll dice
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/rerolldice/p2_uid/$p2/dice_pos/0/0/1/0/1");
@@ -142,7 +194,7 @@ echo "p2 reroll: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p2 make call
 $raise=12;
@@ -151,7 +203,7 @@ echo "p2 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 $json = json_decode($result,true);
 if (isset($json['code']) && $json['code']=="invalid_call") {
@@ -164,7 +216,7 @@ echo "p1 receive p2: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p1 not trust
 /*
@@ -179,7 +231,7 @@ echo "p1 trust: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 //p1 reroll dice
 $result = file_get_contents("http://54.213.19.254/gameroom/$pid/rerolldice/p1_uid/$p1/dice_pos/1/0/0/1/0");
@@ -187,6 +239,6 @@ echo "p1 reroll: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+$comb_result = showRoom($p1,$p2);
 
 ?>
