@@ -233,10 +233,10 @@ out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) ->
                  PushFriendsGamesListResponse = eredis:q(C, ["SMEMBERS", PushFriendsGamesKey]),
                  eredis:stop(C),
 
-                 FakeResponse = {ok, [1200561,223593]},
+                 %FakeResponse = {ok, [1200561,223593]},
 
-                 %case PushFriendsGamesListResponse of 
-                 case FakeResponse of 
+                 case PushFriendsGamesListResponse of 
+                 %case FakeResponse of 
                    {ok, PushFriendsGamesList} ->
 io:format("has friends games set: ~n"), 
                      {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[],PushFriendsGamesList),

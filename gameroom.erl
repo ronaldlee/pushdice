@@ -4,10 +4,10 @@
 -record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
 -define(MAX_DICE_SCORE,90).
 %2 days
-%-define(EXPIRE_GAME_DURATION_IN_MSEC,172800000).
+-define(EXPIRE_GAME_DURATION_IN_MSEC,172800000).
 
 %5minutes
--define(EXPIRE_GAME_DURATION_IN_MSEC,30000).
+%-define(EXPIRE_GAME_DURATION_IN_MSEC,30000).
 
 -define(STATE,Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults).
 -define(CHECK_STATE,pot,Pot,bet,Bet,sorted_call_dice,SortedCallDice,sorted_actual_dice,SortedActualDice,prev_sorted_actual_dice,PrevSortedActualDice,p1_bind,P1Bind, p1_buyin,P1BuyIn, p2_buyin,P2BuyIn,prev_raise,PrevRaise,orig_buyin,OrigBuyIn,all_p1_calls,AllP1Calls,all_p2_calls,AllP2Calls,all_dice_results,AllDiceResults).
