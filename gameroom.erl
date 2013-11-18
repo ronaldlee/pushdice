@@ -1,7 +1,7 @@
 -module(gameroom).
 -include("/home/ubuntu/yaws/include/yaws_api.hrl").
 -compile(export_all).
--record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
+%-record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
 -define(MAX_DICE_SCORE,90).
 %2 days
 -define(EXPIRE_GAME_DURATION_IN_MSEC,172800000).
@@ -38,31 +38,31 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	[1,1,1,3,3] -> 75;
 	[1,1,1,2,2] -> 74;
 
-	[6,6,6,1,1] -> 73;
-	[6,6,6,5,5] -> 72;
-	[6,6,6,4,4] -> 71;
-	[6,6,6,3,3] -> 70;
-	[6,6,6,2,2] -> 69;
+	[1,1,6,6,6] -> 73;
+	[5,5,6,6,6] -> 72;
+	[4,4,6,6,6] -> 71;
+	[3,3,6,6,6] -> 70;
+	[2,2,6,6,6] -> 69;
 
-	[5,5,5,1,1] -> 68;
+	[1,1,5,5,5] -> 68;
 	[5,5,5,6,6] -> 67;
-	[5,5,5,4,4] -> 66;
-	[5,5,5,3,3] -> 65;
-	[5,5,5,2,2] -> 64;
+	[4,4,5,5,5] -> 66;
+	[3,3,5,5,5] -> 65;
+	[2,2,5,5,5] -> 64;
 
-	[4,4,4,1,1] -> 63;
+	[1,1,4,4,4] -> 63;
 	[4,4,4,6,6] -> 62;
 	[4,4,4,5,5] -> 61;
-	[4,4,4,3,3] -> 60;
-	[4,4,4,2,2] -> 59;
+	[3,3,4,4,4] -> 60;
+	[2,2,4,4,4] -> 59;
 
-	[3,3,3,1,1] -> 58;
+	[1,1,3,3,3] -> 58;
 	[3,3,3,6,6] -> 57;
 	[3,3,3,5,5] -> 56;
 	[3,3,3,4,4] -> 55;
-	[3,3,3,2,2] -> 54;
+	[2,2,3,3,3] -> 54;
 
-	[2,2,2,1,1] -> 53;
+	[1,1,2,2,2] -> 53;
 	[2,2,2,6,6] -> 52;
 	[2,2,2,5,5] -> 51;
 	[2,2,2,4,4] -> 50;
@@ -81,35 +81,19 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	[1,1,3,3,_] -> 39;
 	[1,1,2,2,_] -> 38;
 
-	[6,6,1,1,_] -> 37;
-	[6,6,5,5,_] -> 36;
-	[6,6,4,4,_] -> 35;
-	[6,6,3,3,_] -> 34;
-	[6,6,2,2,_] -> 33;
+	[5,5,6,6,_] -> 36;
+	[4,4,6,6,_] -> 35;
+	[3,3,6,6,_] -> 34;
+	[2,2,6,6,_] -> 33;
 
-	[5,5,1,1,_] -> 32;
-	[5,5,6,6,_] -> 31;
-	[5,5,4,4,_] -> 30;
-	[5,5,3,3,_] -> 29;
-	[5,5,2,2,_] -> 28;
+	[4,4,5,5,_] -> 30;
+	[3,3,5,5,_] -> 29;
+	[2,2,5,5,_] -> 28;
 
-	[4,4,1,1,_] -> 27;
-	[4,4,6,6,_] -> 26;
-	[4,4,5,5,_] -> 25;
-	[4,4,3,3,_] -> 24;
-	[4,4,2,2,_] -> 23;
+	[3,3,4,4,_] -> 24;
+	[2,2,4,4,_] -> 23;
 
-	[3,3,1,1,_] -> 22;
-	[3,3,6,6,_] -> 21;
-	[3,3,5,5,_] -> 20;
-	[3,3,4,4,_] -> 19;
-	[3,3,2,2,_] -> 18;
-
-	[2,2,1,1,_] -> 17;
-	[2,2,6,6,_] -> 16;
-	[2,2,5,5,_] -> 15;
-	[2,2,4,4,_] -> 14;
-	[2,2,3,3,_] -> 13;
+	[2,2,3,3,_] -> 18;
 
 	[1,1,_,_,_] -> 12;
 	[6,6,_,_,_] -> 11;
@@ -191,48 +175,25 @@ io:format("get dice comb by score: ~w~n",[DiceScore]),
 	44->[3,3,3,9,9];
 	43->[2,2,2,9,9];
 
-	42->[1,1,6,6,9];
-	41->[1,1,5,5,9];
-	40->[1,1,4,4,9];
-	39->[1,1,3,3,9];
-	38->[1,1,2,2,9];
+	21->[1,1,6,6,9];
+	20->[1,1,5,5,9];
+	19->[1,1,4,4,9];
+	18->[1,1,3,3,9];
+	17->[1,1,2,2,9];
 
-	37->[6,6,1,1,9];
-	36->[6,6,5,5,9];
-	35->[6,6,4,4,9];
-	34->[6,6,3,3,9];
-	33->[6,6,2,2,9];
+	16->[5,5,6,6,9];
+	15->[4,4,6,6,9];
+	14->[3,3,6,6,9];
+	13->[2,2,6,6,9];
 
-	32->[5,5,1,1,9];
-	31->[5,5,6,6,9];
-	30->[5,5,4,4,9];
-	29->[5,5,3,3,9];
-	28->[5,5,2,2,9];
+	12->[4,4,5,5,9];
+	11->[3,3,5,5,9];
+	10->[2,2,5,5,9];
 
-	27->[4,4,1,1,9];
-	26->[4,4,6,6,9];
-	25->[4,4,5,5,9];
-	24->[4,4,3,3,9];
-	23->[4,4,2,2,9];
+	9->[3,3,4,4,9];
+	8->[2,2,4,4,9];
 
-	22->[3,3,1,1,9];
-	21->[3,3,6,6,9];
-	20->[3,3,5,5,9];
-	19->[3,3,4,4,9];
-	18->[3,3,2,2,9];
-
-	17->[2,2,1,1,9];
-	16->[2,2,6,6,9];
-	15->[2,2,5,5,9];
-	14->[2,2,4,4,9];
-	13->[2,2,3,3,9];
-
-	12->[1,1,9,9,9];
-	11->[6,6,9,9,9];
-	10->[5,5,9,9,9];
-	9->[4,4,9,9,9];
-	8->[3,3,9,9,9];
-	7->[2,2,9,9,9];
+	7->[2,2,3,3,9];
 
 	6->[1,9,9,9,9];
 	5->[6,9,9,9,9];
@@ -242,6 +203,46 @@ io:format("get dice comb by score: ~w~n",[DiceScore]),
 	1->[2,9,9,9,9];
 
 	_ -> false 
+    end.
+
+diceCompareDescend(Dice1,Dice2) ->
+    io:format("dice compare start  ~n"),
+    if 
+      (Dice1 == 1) and (Dice2 /= 1) -> true; 
+      (Dice1 /= 1) and (Dice2 == 1) -> false;
+      (Dice1 == 9) and (Dice2 /= 9) -> false; 
+      (Dice1 /= 9) and (Dice2 == 9) -> true;
+      Dice1 =< Dice2 -> false;
+      true -> true 
+    end.
+
+
+findOccur([],OccurCount,DiceVal) ->
+    OccurCount;
+findOccur([H|Rest],OccurCount,DiceVal) ->
+    if 
+      H == DiceVal ->
+        findOccur(Rest,OccurCount+1,DiceVal);
+      true ->
+        findOccur(Rest,OccurCount,DiceVal)
+    end. 
+
+%group identical dice together, move single dice to the end of the list.
+groupOrderedDiceList(OrderedDiceList,NewOrderedDiceList,0) ->
+    NewOrderedDiceList;
+groupOrderedDiceList(OrderedDiceList,NewOrderedDiceList,ListLength) ->
+    [H|Rest] = OrderedDiceList,
+    DiceOccur = findOccur(NewOrderedDiceList,0,H),
+%io:format("  .. ~w occur:~w ~n",[H,DiceOccur]),
+    if 
+      DiceOccur == 1 -> %move this to the end of the list
+        RemoveOneList = lists:delete(H,NewOrderedDiceList),
+%io:format("  .. RemoveOneList:~w ~n",[RemoveOneList]),
+        NewOrderedDiceList2 = lists:append(RemoveOneList,[H]),
+%io:format("  .. NewOrderedDiceList2:~w ~n",[NewOrderedDiceList2]),
+        groupOrderedDiceList(Rest,NewOrderedDiceList2,ListLength-1);
+      true -> 
+        groupOrderedDiceList(Rest,NewOrderedDiceList,ListLength-1)
     end.
 
 start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
@@ -266,6 +267,7 @@ start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
 
     %sort the dice from low to high
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
+    %SortedActualDice = lists:sort(diceCompare,NewActualDice),
     SortedActualDice = lists:sort(NewActualDice),
 
     Pid = spawn(gameroom, init_gameroom, [Player1_uid,Player2_uid,P1Bind,P1BuyIn,NewActualDice,SortedActualDice,[],[],[SortedActualDice]]),
@@ -1264,6 +1266,27 @@ out(Arg, ["del", "uid", Uid]) ->
     eredis:q(C, ["DEL", InitRoomsSetKey]),
     eredis:q(C, ["DEL", JoinRoomsSetKey]),
     eredis:stop(C),
+
+    Output = mochijson2:encode({struct, [ {status,ok} ]}),
+
+    {html, Output};
+
+out(Arg, ["testsort"])->
+    io:format("test sort start ~n"),
+    SortedActualDice = lists:sort(fun diceCompareDescend/2,[3,2,1,2,4]),
+    %SortedActualDice = lists:sort(diceCompare,[]),
+    io:format("test sort after ~n"),
+    io:format("test sort ~w~n",[SortedActualDice]),
+
+    Output = mochijson2:encode({struct, [ {status,ok} ]}),
+
+    {html, Output};
+
+out(Arg, ["testgroup"])->
+    io:format("test group~n"),
+    %NewList = groupOrderedDiceList([1,1,3,2,2],[1,1,3,2,2],5),
+    NewList = groupOrderedDiceList([2,3,4,4,9],[2,3,4,4,9],5),
+    io:format("test group list: ~w~n",[NewList]),
 
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
 
