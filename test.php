@@ -58,7 +58,8 @@ echo "p2: " . json_encode($comb_result['p2']) ."\n";
 
 //p1 make call
 $raise=2;
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/1/4/4/9/9/raise/$raise");
+//$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/1/4/4/9/9/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/1/9/9/9/9/raise/$raise");
 echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
