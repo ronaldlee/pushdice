@@ -2,7 +2,7 @@
 -include("/home/ubuntu/yaws/include/yaws_api.hrl").
 -compile(export_all).
 %-record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
--define(MAX_DICE_SCORE,90).
+-define(MAX_DICE_SCORE,75).
 %2 days
 -define(EXPIRE_GAME_DURATION_IN_MSEC,172800000).
 
@@ -18,90 +18,90 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	%{"1","2","3","4","5"} -> io:format("match 1 ~n",[]), true;
 	%{"2","3","4","5","6"} -> io:format("match 2 ~n",[]), true;
 
-	[1,1,1,1,1] -> 90;
-	[6,6,6,6,6] -> 89;
-	[5,5,5,5,5] -> 88;
-	[4,4,4,4,4] -> 87;
-	[3,3,3,3,3] -> 86;
-	[2,2,2,2,2] -> 85;
+	[1,1,1,1,1] -> 75;
+	[6,6,6,6,6] -> 74;
+	[5,5,5,5,5] -> 73;
+	[4,4,4,4,4] -> 72;
+	[3,3,3,3,3] -> 71;
+	[2,2,2,2,2] -> 70;
 
-	[1,1,1,1,_] -> 84;
-	[6,6,6,6,_] -> 83;
-	[5,5,5,5,_] -> 82;
-	[4,4,4,4,_] -> 81;
-	[3,3,3,3,_] -> 80;
-	[2,2,2,2,_] -> 79;
+	[1,1,1,1,_] -> 69;
+	[6,6,6,6,_] -> 68;
+	[5,5,5,5,_] -> 67;
+	[4,4,4,4,_] -> 66;
+	[3,3,3,3,_] -> 65;
+	[2,2,2,2,_] -> 64;
+%
+	[1,1,1,6,6] -> 63;
+	[1,1,1,5,5] -> 62;
+	[1,1,1,4,4] -> 61;
+	[1,1,1,3,3] -> 60;
+	[1,1,1,2,2] -> 59;
 
-	[1,1,1,6,6] -> 78;
-	[1,1,1,5,5] -> 77;
-	[1,1,1,4,4] -> 76;
-	[1,1,1,3,3] -> 75;
-	[1,1,1,2,2] -> 74;
+	[1,1,6,6,6] -> 58;
+	[5,5,6,6,6] -> 57;
+	[4,4,6,6,6] -> 56;
+	[3,3,6,6,6] -> 55;
+	[2,2,6,6,6] -> 54;
 
-	[1,1,6,6,6] -> 73;
-	[5,5,6,6,6] -> 72;
-	[4,4,6,6,6] -> 71;
-	[3,3,6,6,6] -> 70;
-	[2,2,6,6,6] -> 69;
+	[1,1,5,5,5] -> 53;
+	[5,5,5,6,6] -> 52;
+	[4,4,5,5,5] -> 51;
+	[3,3,5,5,5] -> 50;
+	[2,2,5,5,5] -> 49;
 
-	[1,1,5,5,5] -> 68;
-	[5,5,5,6,6] -> 67;
-	[4,4,5,5,5] -> 66;
-	[3,3,5,5,5] -> 65;
-	[2,2,5,5,5] -> 64;
+	[1,1,4,4,4] -> 48;
+	[4,4,4,6,6] -> 47;
+	[4,4,4,5,5] -> 46;
+	[3,3,4,4,4] -> 45;
+	[2,2,4,4,4] -> 44;
 
-	[1,1,4,4,4] -> 63;
-	[4,4,4,6,6] -> 62;
-	[4,4,4,5,5] -> 61;
-	[3,3,4,4,4] -> 60;
-	[2,2,4,4,4] -> 59;
+	[1,1,3,3,3] -> 43;
+	[3,3,3,6,6] -> 42;
+	[3,3,3,5,5] -> 41;
+	[3,3,3,4,4] -> 40;
+	[2,2,3,3,3] -> 39;
 
-	[1,1,3,3,3] -> 58;
-	[3,3,3,6,6] -> 57;
-	[3,3,3,5,5] -> 56;
-	[3,3,3,4,4] -> 55;
-	[2,2,3,3,3] -> 54;
+	[1,1,2,2,2] -> 38;
+	[2,2,2,6,6] -> 37;
+	[2,2,2,5,5] -> 36;
+	[2,2,2,4,4] -> 35;
+	[2,2,2,3,3] -> 34;
+%
+	[1,1,1,_,_] -> 33;
+	[6,6,6,_,_] -> 32;
+	[5,5,5,_,_] -> 31;
+	[4,4,4,_,_] -> 30;
+	[3,3,3,_,_] -> 29;
+	[2,2,2,_,_] -> 28;
+%
+	[1,1,6,6,_] -> 27;
+	[1,1,5,5,_] -> 26;
+	[1,1,4,4,_] -> 25;
+	[1,1,3,3,_] -> 24;
+	[1,1,2,2,_] -> 23;
 
-	[1,1,2,2,2] -> 53;
-	[2,2,2,6,6] -> 52;
-	[2,2,2,5,5] -> 51;
-	[2,2,2,4,4] -> 50;
-	[2,2,2,3,3] -> 49;
+	[5,5,6,6,_] -> 22;
+	[4,4,6,6,_] -> 21;
+	[3,3,6,6,_] -> 20;
+	[2,2,6,6,_] -> 19;
 
-	[1,1,1,_,_] -> 48;
-	[6,6,6,_,_] -> 47;
-	[5,5,5,_,_] -> 46;
-	[4,4,4,_,_] -> 45;
-	[3,3,3,_,_] -> 44;
-	[2,2,2,_,_] -> 43;
+	[4,4,5,5,_] -> 18;
+	[3,3,5,5,_] -> 17;
+	[2,2,5,5,_] -> 16;
 
-	[1,1,6,6,_] -> 42;
-	[1,1,5,5,_] -> 41;
-	[1,1,4,4,_] -> 40;
-	[1,1,3,3,_] -> 39;
-	[1,1,2,2,_] -> 38;
+	[3,3,4,4,_] -> 15;
+	[2,2,4,4,_] -> 14;
 
-	[5,5,6,6,_] -> 36;
-	[4,4,6,6,_] -> 35;
-	[3,3,6,6,_] -> 34;
-	[2,2,6,6,_] -> 33;
-
-	[4,4,5,5,_] -> 30;
-	[3,3,5,5,_] -> 29;
-	[2,2,5,5,_] -> 28;
-
-	[3,3,4,4,_] -> 24;
-	[2,2,4,4,_] -> 23;
-
-	[2,2,3,3,_] -> 18;
-
+	[2,2,3,3,_] -> 13;
+%
 	[1,1,_,_,_] -> 12;
 	[6,6,_,_,_] -> 11;
 	[5,5,_,_,_] -> 10;
 	[4,4,_,_,_] -> 9;
 	[3,3,_,_,_] -> 8;
 	[2,2,_,_,_] -> 7;
-
+%
 	[1,_,_,_,_] -> 6;
 	[6,_,_,_,_] -> 5;
 	[5,_,_,_,_] -> 4;
@@ -118,83 +118,90 @@ io:format("get dice comb by score: ~w~n",[DiceScore]),
 	%{"1","2","3","4","5"} -> io:format("match 1 ~n",[]), true;
 	%{"2","3","4","5","6"} -> io:format("match 2 ~n",[]), true;
 
-	90->[1,1,1,1,1];
-	89->[6,6,6,6,6];
-	88->[5,5,5,5,5];
-	87->[4,4,4,4,4];
-	86->[3,3,3,3,3];
-	85->[2,2,2,2,2];
+	75->[1,1,1,1,1];
+	74->[6,6,6,6,6];
+	73->[5,5,5,5,5];
+	72->[4,4,4,4,4];
+	71->[3,3,3,3,3];
+	70->[2,2,2,2,2];
 
-	84->[1,1,1,1,9];
-	83->[6,6,6,6,9];
-	82->[5,5,5,5,9];
-	81->[4,4,4,4,9];
-	80->[3,3,3,3,9];
-	79->[2,2,2,2,9];
+	69->[1,1,1,1,9];
+	68->[6,6,6,6,9];
+	67->[5,5,5,5,9];
+	66->[4,4,4,4,9];
+	65->[3,3,3,3,9];
+	64->[2,2,2,2,9];
+%
+	63->[1,1,1,6,6];
+	62->[1,1,1,5,5];
+	61->[1,1,1,4,4];
+	60->[1,1,1,3,3];
+	59->[1,1,1,2,2];
 
-	78->[1,1,1,6,6];
-	77->[1,1,1,5,5];
-	76->[1,1,1,4,4];
-	75->[1,1,1,3,3];
-	74->[1,1,1,2,2];
+	58->[6,6,6,1,1];
+	57->[6,6,6,5,5];
+	56->[6,6,6,4,4];
+	55->[6,6,6,3,3];
+	54->[6,6,6,2,2];
 
-	73->[6,6,6,1,1];
-	72->[6,6,6,5,5];
-	71->[6,6,6,4,4];
-	70->[6,6,6,3,3];
-	69->[6,6,6,2,2];
+	53->[5,5,5,1,1];
+	52->[5,5,5,6,6];
+	51->[5,5,5,4,4];
+	50->[5,5,5,3,3];
+	49->[5,5,5,2,2];
 
-	68->[5,5,5,1,1];
-	67->[5,5,5,6,6];
-	66->[5,5,5,4,4];
-	65->[5,5,5,3,3];
-	64->[5,5,5,2,2];
+	48->[4,4,4,1,1];
+	47->[4,4,4,6,6];
+	46->[4,4,4,5,5];
+	45->[4,4,4,3,3];
+	44->[4,4,4,2,2];
 
-	63->[4,4,4,1,1];
-	62->[4,4,4,6,6];
-	61->[4,4,4,5,5];
-	60->[4,4,4,3,3];
-	59->[4,4,4,2,2];
+	43->[3,3,3,1,1];
+	42->[3,3,3,6,6];
+	41->[3,3,3,5,5];
+	40->[3,3,3,4,4];
+	39->[3,3,3,2,2];
 
-	58->[3,3,3,1,1];
-	57->[3,3,3,6,6];
-	56->[3,3,3,5,5];
-	55->[3,3,3,4,4];
-	54->[3,3,3,2,2];
+	38->[2,2,2,1,1];
+	37->[2,2,2,6,6];
+	36->[2,2,2,5,5];
+	35->[2,2,2,4,4];
+	34->[2,2,2,3,3];
+%
+	33->[1,1,1,9,9];
+	32->[6,6,6,9,9];
+	31->[5,5,5,9,9];
+	30->[4,4,4,9,9];
+	29->[3,3,3,9,9];
+	28->[2,2,2,9,9];
+%
+	27->[1,1,6,6,9];
+	26->[1,1,5,5,9];
+	25->[1,1,4,4,9];
+	24->[1,1,3,3,9];
+	23->[1,1,2,2,9];
 
-	53->[2,2,2,1,1];
-	52->[2,2,2,6,6];
-	51->[2,2,2,5,5];
-	50->[2,2,2,4,4];
-	49->[2,2,2,3,3];
+	22->[5,5,6,6,9];
+	21->[4,4,6,6,9];
+	20->[3,3,6,6,9];
+	19->[2,2,6,6,9];
 
-	48->[1,1,1,9,9];
-	47->[6,6,6,9,9];
-	46->[5,5,5,9,9];
-	45->[4,4,4,9,9];
-	44->[3,3,3,9,9];
-	43->[2,2,2,9,9];
+	18->[4,4,5,5,9];
+	17->[3,3,5,5,9];
+	16->[2,2,5,5,9];
 
-	21->[1,1,6,6,9];
-	20->[1,1,5,5,9];
-	19->[1,1,4,4,9];
-	18->[1,1,3,3,9];
-	17->[1,1,2,2,9];
+	15->[3,3,4,4,9];
+	14->[2,2,4,4,9];
 
-	16->[5,5,6,6,9];
-	15->[4,4,6,6,9];
-	14->[3,3,6,6,9];
-	13->[2,2,6,6,9];
-
-	12->[4,4,5,5,9];
-	11->[3,3,5,5,9];
-	10->[2,2,5,5,9];
-
-	9->[3,3,4,4,9];
-	8->[2,2,4,4,9];
-
-	7->[2,2,3,3,9];
-
+	13->[2,2,3,3,9];
+%
+	12->[1,1,9,9,9];
+	11->[6,6,9,9,9];
+	10->[5,5,9,9,9];
+	9->[4,4,9,9,9];
+	8->[3,3,9,9,9];
+	7->[2,2,9,9,9];
+%
 	6->[1,9,9,9,9];
 	5->[6,9,9,9,9];
 	4->[5,9,9,9,9];
@@ -268,7 +275,8 @@ start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
     %sort the dice from low to high
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
     %SortedActualDice = lists:sort(diceCompare,NewActualDice),
-    SortedActualDice = lists:sort(NewActualDice),
+    TempSortedActualDice = lists:sort(fun diceCompareDescend/2,NewActualDice),
+    SortedActualDice = groupOrderedDiceList(TempSortedActualDice,TempSortedActualDice,5),
 
     Pid = spawn(gameroom, init_gameroom, [Player1_uid,Player2_uid,P1Bind,P1BuyIn,NewActualDice,SortedActualDice,[],[],[SortedActualDice]]),
     %need monitor the game room!
@@ -363,6 +371,7 @@ io:format("keys: p1: ~s; ~s~n",[Player1FriendsGamesKey,Player2FriendsGamesKey]),
 io:format("p2 wait for trust or not.. ~n"),
                 SortedCallDiceScore = getDiceScore(SortedCallDice),
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
+
                 NewPot = Pot + P2Bind,
                 FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",NewPot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,[],P1Bind,OrigBuyIn,P1BuyIn,NewP2BuyIn-P2Bind,PrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults)
@@ -643,7 +652,8 @@ io:format("wait_for_p2_pick_dice_to_roll ~n"),
               true ->    
                 NewActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
                 %sort the result before returning
-                NewSortedActualDice = lists:sort(NewActualDice),
+                NewSortedActualDiceTemp = lists:sort(fun diceCompareDescend/2,NewActualDice),
+                NewSortedActualDice = groupOrderedDiceList(NewSortedActualDiceTemp,NewSortedActualDiceTemp,5),
 
                 NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
@@ -670,7 +680,9 @@ io:format("wait_for_p1_pick_dice_to_roll ~n"),
               true ->    
                 NewActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
                 %sort the result before returning
-                NewSortedActualDice = lists:sort(NewActualDice),
+                NewSortedActualDiceTemp = lists:sort(fun diceCompareDescend/2,NewActualDice),
+                NewSortedActualDice = groupOrderedDiceList(NewSortedActualDiceTemp,NewSortedActualDiceTemp,5),
+
                 NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
                 FromPid ! {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot},
@@ -1092,9 +1104,11 @@ out(Arg, [Pid, "makecall", "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P
     io:format("p1 make call. ~n",[]),
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
     P1RaiseInt = list_to_integer(P1Raise),
-    SortedRawCallDice = lists:sort([D1,D2,D3,D4,D5]),
     ConvertFun = fun([X]) -> list_to_integer([X]) end,
-    SortedCallDice = lists:map(ConvertFun, SortedRawCallDice),
+    RawCallDice = lists:map(ConvertFun, [D1,D2,D3,D4,D5]),
+    SortedCallDiceTemp = lists:sort(fun diceCompareDescend/2,RawCallDice),
+    SortedCallDice = groupOrderedDiceList(SortedCallDiceTemp,SortedCallDiceTemp,5),
+
     ValidCall = player1_makecall(list_to_pid(Pid),Player1_uid,SortedCallDice,P1RaiseInt),
     case ValidCall of 
         {valid_call,Pot} ->
@@ -1205,9 +1219,10 @@ out(Arg, [Pid, "call", "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P2Ra
     io:format("p2 make call. ~s~n",[Pid]),
     io:format("p2 make call2 ~w~n",[Pid]),
     P2RaiseInt = list_to_integer(P2Raise),
-    SortedRawCallDice = lists:sort([D1,D2,D3,D4,D5]),
     ConvertFun = fun([X]) -> list_to_integer([X]) end,
-    SortedCallDice = lists:map(ConvertFun, SortedRawCallDice),
+    RawCallDice = lists:map(ConvertFun, [D1,D2,D3,D4,D5]),
+    SortedCallDice = lists:sort(fun diceCompareDescend/2,RawCallDice),
+
     ValidCall = player2_call(list_to_pid(Pid),Player2_uid,SortedCallDice,P2RaiseInt),
     case ValidCall of 
         {valid_call,Pot} ->
@@ -1238,9 +1253,10 @@ io:format("p1_dicerolled~n"),
 out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
     io:format("p1 make call. ~s~n",[Pid]),
     P1RaiseInt = list_to_integer(P1Raise),
-    SortedRawCallDice = lists:sort([D1,D2,D3,D4,D5]),
     ConvertFun = fun([X]) -> list_to_integer([X]) end,
-    SortedCallDice = lists:map(ConvertFun, SortedRawCallDice),
+    RawCallDice = lists:map(ConvertFun, [D1,D2,D3,D4,D5]),
+    SortedCallDice = lists:sort(fun diceCompareDescend/2,RawCallDice),
+
     ValidCall = player1_call(list_to_pid(Pid),Player2_uid,SortedCallDice,P1RaiseInt),
     case ValidCall of 
         {valid_call,Pot} ->
