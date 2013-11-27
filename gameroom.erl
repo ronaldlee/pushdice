@@ -102,12 +102,12 @@ io:format("get score int dice list: ~w~n",[DiceList]),
 	[3,3,_,_,_] -> 8;
 	[2,2,_,_,_] -> 7;
 %
-	[_,_,_,_,1] -> 6;
-	[_,_,_,_,6] -> 5;
-	[_,_,_,_,5] -> 4;
-	[_,_,_,_,4] -> 3;
-	[_,_,_,_,3] -> 2;
-	[_,_,_,_,2] -> 1;
+	[1,_,_,_,_] -> 6;
+	[6,_,_,_,_] -> 5;
+	[5,_,_,_,_] -> 4;
+	[4,_,_,_,_] -> 3;
+	[3,_,_,_,_] -> 2;
+	[2,_,_,_,_] -> 1;
 
 	_ -> false
     end.
@@ -252,6 +252,19 @@ groupOrderedDiceList(OrderedDiceList,NewOrderedDiceList,ListLength) ->
         groupOrderedDiceList(Rest,NewOrderedDiceList,ListLength-1)
     end.
 
+moveNinesToEnd(OrderedDiceList,NewOrderedDiceList,0) ->
+    NewOrderedDiceList;
+moveNinesToEnd(OrderedDiceList,NewOrderedDiceList,ListLength) ->
+    [H|Rest] = OrderedDiceList,
+    if 
+      H == 9 -> %move this to the end of the list
+        RemoveOneList = lists:delete(H,NewOrderedDiceList),
+        NewOrderedDiceList2 = lists:append(RemoveOneList,[H]),
+        moveNinesToEnd(Rest,NewOrderedDiceList2,ListLength-1);
+      true -> 
+        moveNinesToEnd(Rest,NewOrderedDiceList,ListLength-1)
+    end.
+
 start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
     io:format("start. ~n",[]),
 
@@ -276,7 +289,8 @@ start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([Dice1_value,Dice2_value,Dice3_value,Dice4_value,Dice5_value]),
     %SortedActualDice = lists:sort(diceCompare,NewActualDice),
     TempSortedActualDice = lists:sort(fun diceCompareDescend/2,NewActualDice),
-    SortedActualDice = groupOrderedDiceList(TempSortedActualDice,TempSortedActualDice,5),
+    TempSortedActualDice2 = groupOrderedDiceList(TempSortedActualDice,TempSortedActualDice,5),
+    SortedActualDice = moveNinesToEnd(TempSortedActualDice2,TempSortedActualDice2,5),
 
     Pid = spawn(gameroom, init_gameroom, [Player1_uid,Player2_uid,P1Bind,P1BuyIn,NewActualDice,SortedActualDice,[],[],[SortedActualDice]]),
     %need monitor the game room!
@@ -653,7 +667,8 @@ io:format("wait_for_p2_pick_dice_to_roll ~n"),
                 NewActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
                 %sort the result before returning
                 NewSortedActualDiceTemp = lists:sort(fun diceCompareDescend/2,NewActualDice),
-                NewSortedActualDice = groupOrderedDiceList(NewSortedActualDiceTemp,NewSortedActualDiceTemp,5),
+                NewSortedActualDiceTemp2 = groupOrderedDiceList(NewSortedActualDiceTemp,NewSortedActualDiceTemp,5),
+                NewSortedActualDice = moveNinesToEnd(NewSortedActualDiceTemp2,NewSortedActualDiceTemp2,5),
 
                 NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
@@ -681,7 +696,8 @@ io:format("wait_for_p1_pick_dice_to_roll ~n"),
                 NewActualDice = rerollDice(SortedActualDice,ReRollDicePosList,[]),
                 %sort the result before returning
                 NewSortedActualDiceTemp = lists:sort(fun diceCompareDescend/2,NewActualDice),
-                NewSortedActualDice = groupOrderedDiceList(NewSortedActualDiceTemp,NewSortedActualDiceTemp,5),
+                NewSortedActualDiceTemp2 = groupOrderedDiceList(NewSortedActualDiceTemp,NewSortedActualDiceTemp,5),
+                NewSortedActualDice = moveNinesToEnd(NewSortedActualDiceTemp2,NewSortedActualDiceTemp2,5),
 
                 NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
@@ -1059,7 +1075,7 @@ io:format("PASSSS ~n",[]),
     HtmlOutput.
 
 out(Arg, [Pid, "check"]) -> 
-    io:format("check room. ~n",[]),
+    io:format("check room. ~w~n",[Arg]),
     list_to_pid(Pid) ! {check,self()},
     RoomState = receive
         State -> State
@@ -1068,7 +1084,7 @@ out(Arg, [Pid, "check"]) ->
     {html, Output};
 
 out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, "buyin", P1Buyin]) -> 
-    io:format("init. ~n",[]),
+    io:format("init. ~w~n",[Arg]),
     {NewPid,ActualDice,SortedDice} = start(Player1_uid,Player2_uid,list_to_integer(P1Bind),list_to_integer(P1Buyin)),
     io:format("init 2. ~w~n",[NewPid]),
     Response = [ {code,"ok"}, {pid,pid_to_list(NewPid)} ],
@@ -1081,7 +1097,7 @@ out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, 
     {html, Output};
 
 out(Arg, [Pid, "accept_game", "p2_uid", Player2_uid,"bind",P2Bind, "buyin",P2BuyIn]) -> 
-    io:format("accept_game. ~w~n",[list_to_pid(Pid)]),
+    io:format("accept_game. ~w, ~w ~n",[list_to_pid(Pid),Arg]),
     accept_game(list_to_pid(Pid), Player2_uid, list_to_integer(P2Bind),list_to_integer(P2BuyIn)),
     receive
         {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
@@ -1101,13 +1117,14 @@ io:format("p1_calldice. ~n",[]),
 %    end;
 
 out(Arg, [Pid, "makecall", "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
-    io:format("p1 make call. ~n",[]),
+    io:format("p1 make call. ~w~n",[Arg]),
     %[SDice1_value,SDice2_value,SDice3_value,SDice4_value,SDice5_value] = lists:sort([D1,D2,D3,D4,D5]),
     P1RaiseInt = list_to_integer(P1Raise),
     ConvertFun = fun([X]) -> list_to_integer([X]) end,
     RawCallDice = lists:map(ConvertFun, [D1,D2,D3,D4,D5]),
     SortedCallDiceTemp = lists:sort(fun diceCompareDescend/2,RawCallDice),
-    SortedCallDice = groupOrderedDiceList(SortedCallDiceTemp,SortedCallDiceTemp,5),
+    SortedCallDiceTemp2 = groupOrderedDiceList(SortedCallDiceTemp,SortedCallDiceTemp,5),
+    SortedCallDice = moveNinesToEnd(SortedCallDiceTemp2,SortedCallDiceTemp2,5),
 
     ValidCall = player1_makecall(list_to_pid(Pid),Player1_uid,SortedCallDice,P1RaiseInt),
     case ValidCall of 
@@ -1126,7 +1143,7 @@ out(Arg, [Pid, "makecall", "p1_uid", Player1_uid,"call",D1,D2,D3,D4,D5,"raise",P
     end;
 
 out(Arg, [Pid, "find_call", "p2_uid", Player2_uid]) -> 
-    io:format("p2 find out p1 call. ~n",[]),
+    io:format("p2 find out p1 call. ~w~n",[Arg]),
     player2_findcall(list_to_pid(Pid),Player2_uid),
     receive
         {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
@@ -1136,7 +1153,7 @@ out(Arg, [Pid, "find_call", "p2_uid", Player2_uid]) ->
     end;
 
 out(Arg, [Pid, "find_call", "p1_uid", Player1_uid]) -> 
-    io:format("p1 find out p2 call. ~n",[]),
+    io:format("p1 find out p2 call. ~w~n",[Arg]),
     player1_findcall(list_to_pid(Pid),Player1_uid),
     receive
         {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
@@ -1146,7 +1163,7 @@ out(Arg, [Pid, "find_call", "p1_uid", Player1_uid]) ->
     end;
 
 out(Arg, [Pid, "trust", "p2_uid", Player2_uid, "bet",P2Bet]) -> 
-    io:format("p2 trust. ~n",[]),
+    io:format("p2 trust. ~w~n",[Arg]),
     player2_trustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
         {p2,valid_bet,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Bet,Pot} ->
@@ -1163,7 +1180,7 @@ io:format("p2 bad bet return result html ~s~n",[P1DiceResultJsonStr]),
     end;
 
 out(Arg, [Pid, "nottrust", "p2_uid", Player2_uid, "bet",P2Bet]) -> 
-    io:format("p2 not trust. ~n",[]),
+    io:format("p2 not trust. ~w~n",[Arg]),
     player2_nottrustcall(list_to_pid(Pid),Player2_uid,P2Bet),
     receive
         {p2,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot} ->
@@ -1175,7 +1192,7 @@ out(Arg, [Pid, "nottrust", "p2_uid", Player2_uid, "bet",P2Bet]) ->
     end;
 
 out(Arg, [Pid, "trust", "p1_uid", Player1_uid, "bet",P1Bet]) -> 
-    io:format("p1 trust. ~n",[]),
+    io:format("p1 trust. ~w~n",[Arg]),
     player1_trustcall(list_to_pid(Pid),Player1_uid,P1Bet),
     io:format("p1 trust after. ~n",[]),
     receive
@@ -1192,7 +1209,7 @@ io:format("p1_trust bad_bet ~n"),
     end;
 
 out(Arg, [Pid, "nottrust", "p1_uid", Player1_uid, "bet",P1Bet]) -> 
-    io:format("p1 not trust. ~n",[]),
+    io:format("p1 not trust. ~w~n",[Arg]),
     player1_nottrustcall(list_to_pid(Pid),Player1_uid,P1Bet),
     receive
         {p1,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot} ->
@@ -1205,7 +1222,7 @@ out(Arg, [Pid, "nottrust", "p1_uid", Player1_uid, "bet",P1Bet]) ->
 
 %when the dice pos is "1", mean that it is reroll, otherwise 0 means no roll
 out(Arg, [Pid, "rerolldice", "p2_uid", Player2_uid, "dice_pos",DicePos1flag,DicePos2flag,DicePos3flag,DicePos4flag,DicePos5flag]) -> 
-    io:format("p2 reroll. ~n",[]),
+    io:format("p2 reroll. ~w~n",[Arg]),
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player2_reroll(list_to_pid(Pid),Player2_uid,ReRollDicePosList),
     receive
@@ -1216,8 +1233,9 @@ io:format("p2_dicerolled~n"),
     end;
 
 out(Arg, [Pid, "call", "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P2Raise]) -> 
-    io:format("p2 make call. ~s~n",[Pid]),
-    io:format("p2 make call2 ~w~n",[Pid]),
+    %io:format("p2 make call. ~s~n",[Pid]),
+    %io:format("p2 make call2 ~w~n",[Pid]),
+    io:format("p2 make call ~w~n",[Arg]),
     P2RaiseInt = list_to_integer(P2Raise),
     ConvertFun = fun([X]) -> list_to_integer([X]) end,
     RawCallDice = lists:map(ConvertFun, [D1,D2,D3,D4,D5]),
@@ -1240,7 +1258,7 @@ out(Arg, [Pid, "call", "p2_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P2Ra
     end;
 
 out(Arg, [Pid, "rerolldice", "p1_uid", Player1_uid, "dice_pos",DicePos1flag,DicePos2flag,DicePos3flag,DicePos4flag,DicePos5flag]) -> 
-    io:format("p1 reroll. ~n",[]),
+    io:format("p1 reroll. ~w~n",[Arg]),
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player1_reroll(list_to_pid(Pid),Player1_uid,ReRollDicePosList),
     receive
@@ -1251,7 +1269,8 @@ io:format("p1_dicerolled~n"),
     end;
 
 out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
-    io:format("p1 make call. ~s~n",[Pid]),
+    %io:format("p1 make call. ~s~n",[Pid]),
+    io:format("p1 make call. ~w~n",[Arg]),
     P1RaiseInt = list_to_integer(P1Raise),
     ConvertFun = fun([X]) -> list_to_integer([X]) end,
     RawCallDice = lists:map(ConvertFun, [D1,D2,D3,D4,D5]),
@@ -1274,7 +1293,7 @@ out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Ra
     end;
 
 out(Arg, ["del", "uid", Uid]) -> 
-    io:format("list game rooms. ~n",[]),
+    io:format("list game rooms. ~w~n",[Arg]),
     InitRoomsSetKey = io_lib:format("gri_~s",[Uid]),
     JoinRoomsSetKey = io_lib:format("grj_~s",[Uid]),
 
@@ -1288,7 +1307,7 @@ out(Arg, ["del", "uid", Uid]) ->
     {html, Output};
 
 out(Arg, ["testsort"])->
-    io:format("test sort start ~n"),
+    io:format("test sort start ~w~n",[Arg]),
     SortedActualDice = lists:sort(fun diceCompareDescend/2,[3,2,1,2,4]),
     %SortedActualDice = lists:sort(diceCompare,[]),
     io:format("test sort after ~n"),
@@ -1299,9 +1318,10 @@ out(Arg, ["testsort"])->
     {html, Output};
 
 out(Arg, ["testgroup"])->
-    io:format("test group~n"),
+    io:format("test group ~w~n",[Arg]),
     %NewList = groupOrderedDiceList([1,1,3,2,2],[1,1,3,2,2],5),
-    NewList = groupOrderedDiceList([2,3,4,4,9],[2,3,4,4,9],5),
+    NewListTemp = groupOrderedDiceList([2,3,4,4,9],[2,3,4,4,9],5),
+    NewList = moveNinesToEnd(NewListTemp,NewListTemp,5),
     io:format("test group list: ~w~n",[NewList]),
 
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
@@ -1309,7 +1329,7 @@ out(Arg, ["testgroup"])->
     {html, Output};
 
 out(Arg, ["list", "uid", Uid]) -> 
-    io:format("list game rooms. ~n",[]),
+    io:format("list game rooms. ~w~n",[Arg]),
     InitRoomsSetKey = io_lib:format("gri_~s",[Uid]),
     JoinRoomsSetKey = io_lib:format("grj_~s",[Uid]),
 
