@@ -274,11 +274,14 @@ getDiceScore2(DiceList,UniqueDiceSet,Scores) ->
     [H|Rest] = UniqueDiceSet,
     DiceOccur = findOccur(DiceList,0,H),
 
+    io:format("**** getDiceScore2 DiceOccur: ~w: ~w ~n",[H,DiceOccur]),
     if 
       H == 1 ->
         NewScores = lists:append(Scores,[7*math:pow(10,DiceOccur-1)]);
       H /= 9 ->
-        NewScores = lists:append(Scores,[H*math:pow(10,DiceOccur-1)])
+        NewScores = lists:append(Scores,[H*math:pow(10,DiceOccur-1)]);
+      true ->
+        NewScores = Scores
     end,
 
     getDiceScore2(DiceList,Rest,NewScores).
@@ -776,6 +779,8 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
                 PrevSortedCallDiceScore = getDiceScore(SortedCallDice),
                 P2SortedCallDiceScore = getDiceScore(P2SortedCallDice),
 
+                ComparedDiceScore = compareDiceScores(P2SortedCallDice,SortedCallDice),
+
                 if 
                 (P2SortedCallDiceScore == false) ->
                     FromPid ! {invalid_call,Pot},
@@ -794,7 +799,8 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
                     eredis:stop(C),
 
                     wait_for_p1_findcall(Player1_uid,Player2_uid,P2SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn-P2Raise,NewPrevRaise,Bet,NewPot,AllP1Calls,NewAllP2Calls,AllDiceResults);
-                (P2SortedCallDiceScore > PrevSortedCallDiceScore) ->
+                %(P2SortedCallDiceScore > PrevSortedCallDiceScore) ->
+                ComparedDiceScore == 1 ->
                     io:format("P2 call is greater than prev call ~w, prev: ~w ~n",[P2SortedCallDiceScore,PrevSortedCallDiceScore]),
                     %valid call
                     NewPot = Pot + P2Raise,
@@ -843,6 +849,8 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
                 PrevSortedCallDiceScore = getDiceScore(SortedCallDice),
                 P1SortedCallDiceScore = getDiceScore(P1SortedCallDice),
 
+                ComparedDiceScore = compareDiceScores(P1SortedCallDice,SortedCallDice),
+
                 if 
                 (P1SortedCallDiceScore == false) ->
                     FromPid ! {invalid_call,Pot},
@@ -861,7 +869,8 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
                     eredis:stop(C),
 
                     wait_for_p2_findcall(Player1_uid,Player2_uid,P1SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn-P1Raise,P2BuyIn,NewPrevRaise,Bet,NewPot,NewAllP1Calls,AllP2Calls,AllDiceResults);
-                (P1SortedCallDiceScore > PrevSortedCallDiceScore) ->
+                %(P1SortedCallDiceScore > PrevSortedCallDiceScore) ->
+                (ComparedDiceScore == 1) ->
                     io:format("P1 call is greater than prev call ~w, prev: ~w ~n",[P1SortedCallDiceScore,PrevSortedCallDiceScore]),
                     %valid call
                     NewPot = Pot + P1Raise,
