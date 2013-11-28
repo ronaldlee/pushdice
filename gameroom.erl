@@ -12,6 +12,9 @@
 -define(STATE,Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults).
 -define(CHECK_STATE,pot,Pot,bet,Bet,sorted_call_dice,SortedCallDice,sorted_actual_dice,SortedActualDice,prev_sorted_actual_dice,PrevSortedActualDice,p1_bind,P1Bind, p1_buyin,P1BuyIn, p2_buyin,P2BuyIn,prev_raise,PrevRaise,orig_buyin,OrigBuyIn,all_p1_calls,AllP1Calls,all_p2_calls,AllP2Calls,all_dice_results,AllDiceResults).
 
+
+
+
 getDiceScore(DiceList) ->
 io:format("get score int dice list: ~w~n",[DiceList]),
     case DiceList of 
@@ -264,6 +267,49 @@ moveNinesToEnd(OrderedDiceList,NewOrderedDiceList,ListLength) ->
       true -> 
         moveNinesToEnd(Rest,NewOrderedDiceList,ListLength-1)
     end.
+
+getDiceScore2(DiceList,[],Scores) ->
+    Scores;
+getDiceScore2(DiceList,UniqueDiceSet,Scores) ->
+    [H|Rest] = UniqueDiceSet,
+    DiceOccur = findOccur(DiceList,0,H),
+
+    if 
+      H == 1 ->
+        NewScores = lists:append(Scores,[7*math:pow(10,DiceOccur-1)]);
+      H /= 9 ->
+        NewScores = lists:append(Scores,[H*math:pow(10,DiceOccur-1)])
+    end,
+
+    getDiceScore2(DiceList,Rest,NewScores).
+
+
+compareDiceScoresInternal([],[]) -> %this must go first!!!!
+    0;
+compareDiceScoresInternal([],SortedDiceScoresList2) ->
+    -1;
+compareDiceScoresInternal(SortedDiceScoresList1,[]) ->
+    1;
+compareDiceScoresInternal(SortedDiceScoresList1,SortedDiceScoresList2) ->
+    [H1|Rest1] = SortedDiceScoresList1,
+    [H2|Rest2] = SortedDiceScoresList2,
+
+    if 
+      H1 > H2 ->  1;
+      H1 < H2 -> -1;
+      true -> compareDiceScoresInternal(Rest1,Rest2)
+    end.
+
+compareDiceScores(DiceList1,DiceList2) ->
+    DiceScoresList1 = getDiceScore2(DiceList1,lists:usort(DiceList1),[]),
+    DiceScoresList2 = getDiceScore2(DiceList2,lists:usort(DiceList2),[]),
+
+    %sort those 2 arrays in descending order
+    SortedDiceScoresList1 = lists:sort(DiceScoresList1),
+    SortedDiceScoresList2 = lists:sort(DiceScoresList2),
+
+    compareDiceScoresInternal(SortedDiceScoresList1,SortedDiceScoresList2).
+
 
 start(Player1_uid,Player2_uid,P1Bind,P1BuyIn) ->
     io:format("start. ~n",[]),
@@ -1312,9 +1358,23 @@ out(Arg, ["testsort"])->
     %SortedActualDice = lists:sort(diceCompare,[]),
     io:format("test sort after ~n"),
     io:format("test sort ~w~n",[SortedActualDice]),
+    Output = mochijson2:encode({struct, [ {status,ok} ]}),
+    {html, Output};
+
+out(Arg, ["testcomparedicescores"])->
+    io:format("test compare dice scores ~w~n",[Arg]),
+    Result1 = compareDiceScoresInternal([700,5],[700,3,2]),
+    io:format("test r1 ~w~n",[Result1]),
+    Result2 = compareDiceScoresInternal([700,3,2],[700,5]),
+    io:format("test r2 ~w~n",[Result2]),
+    Result3 = compareDiceScoresInternal([700,5],[700,5,2]),
+    io:format("test r1 ~w~n",[Result3]),
+    Result4 = compareDiceScoresInternal([700,5,2],[700,5]),
+    io:format("test r2 ~w~n",[Result4]),
+    Result5 = compareDiceScoresInternal([700,5],[700,5]),
+    io:format("test r3 ~w~n",[Result5]),
 
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
-
     {html, Output};
 
 out(Arg, ["testgroup"])->
