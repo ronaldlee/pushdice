@@ -7,6 +7,7 @@
 -define(ONE_DAY_SECS,86400).
 -define(TWO_DAY_SECS,172800).
 -define(USER_SESSION_EXPIRATION,86400).
+-define(INAPP_PURCHASE_ITEM_TYPE,1).
 
 %% out(Arg) ->
 %%     Uri = yaws_api:request_url(Arg),
@@ -260,5 +261,10 @@ io:format("session error! ~n"),
            {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"};
          true ->
            {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
-     end.
+     end;
     
+out(Arg, ["inapp_purchase","key",Key]) -> 
+io:format("inapp purchases ~n"),
+  Recs = itemmodel:getItemPropByTypeAndName(pushdice_pool,?INAPP_PURCHASE_ITEM_TYPE,Key),
+io:format("inapp purchases: ~w ~n",[Recs]),
+  {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}.
