@@ -7,6 +7,7 @@
 -export([resetLastPlayAndConsecDaysPlayed/2]).
 -export([updateIOSPushToken/3]).
 -export([getUserSessionData/1]).
+-export([incrementCoins/3]).
 
 
 -record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
@@ -31,6 +32,9 @@ getUserByUsernameAndPlatID(DB_pool,Username,PlatID,PlatType) ->
   SelectResult = emysql:execute(DB_pool, SelectSQL),
   emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)).
 
+incrementCoins(DB_pool,UID,Coins) ->
+  UpdateCoinsSQL = io_lib:format("Update user set coins=coins+~s WHERE user_id='~s'",[Coins,UID]),
+  emysql:execute(DB_pool, UpdateCoinsSQL).
 
 incrementLastPlayAndConsecDaysPlayed(DB_pool,UID) ->
   UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=consecutive_days_played+1 WHERE user_id='~s'",[UID]),
@@ -46,7 +50,9 @@ updateIOSPushToken(DB_pool,UID,IOSPushToken) ->
 
 getUserSessionData(Session) ->
  FetchUserSessionCacheKey = string:concat("pd_session_",Session),
+io:format("get user session key: ~s ~n",[FetchUserSessionCacheKey]),
  FetchUserBinData = erlmc:get(FetchUserSessionCacheKey),
+io:format("get user session data: ~w ~n",[FetchUserBinData]),
  binary_to_term(FetchUserBinData).
 
 

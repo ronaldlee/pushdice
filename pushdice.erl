@@ -183,6 +183,8 @@ out(Arg, ["user", "session", Session]) ->
 
      {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} = usermodel:getUserSessionData(Session),
 
+io:format("session: ~w~w~w~w~w~n",[FetchUsername,FetchPlatId,FetchPlatType,IsNewAcct,DailyBonus]),
+
      Recs = usermodel:getUser(pushdice_pool,integer_to_list(FetchUserId)),
      io:format("fetch user by session: recs: ~w~n",[Recs]),
 
@@ -263,8 +265,27 @@ io:format("session error! ~n"),
            {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
      end;
     
-out(Arg, ["inapp_purchase","key",Key]) -> 
+out(Arg, ["inapp_purchase","key",Key,"session", Session]) -> 
 io:format("inapp purchases ~n"),
-  Recs = itemmodel:getItemPropByTypeAndName(pushdice_pool,?INAPP_PURCHASE_ITEM_TYPE,Key),
-io:format("inapp purchases: ~w ~n",[Recs]),
-  {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}.
+     Recs = itemmodel:getItemPropByTypeAndName(pushdice_pool,?INAPP_PURCHASE_ITEM_TYPE,Key),
+io:format("inapp purchases A: ~w ~n",[Recs]),
+     SelectLength = length(Recs),
+     case SelectLength of
+       1->
+         [{item_prop,ItemPropName,ItemPropValue}] = Recs,
+io:format("inapp purchases ItemPropValue: ~w ~n",[ItemPropValue]),
+
+         case usermodel:getUserSessionData(Session) of
+             {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} ->
+
+io:format("inapp purchases: ~w~w~w~w~w~n",[FetchUsername,FetchPlatId,FetchPlatType,IsNewAcct,DailyBonus]),
+io:format("inapp purchases coins: ~s~n",[ItemPropValue]),
+                 usermodel:incrementCoins(pushdice_pool,integer_to_list(FetchUserId),ItemPropValue),
+                 {html, "{'code':'0', 'msg':'ok'}"};
+             true ->
+io:format("BOOOOO ~n"),
+                 {html, "{'code':'-1', 'msg':'Fail to increment coins.'}"}
+         end;
+       true->
+         {html, "{'code':'-1', 'msg':'Fail to increment coins.'}"}
+     end.
