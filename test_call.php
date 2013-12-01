@@ -31,7 +31,8 @@ if (isset($json['pid'])) {
 
 //p1 make call
 $raise=2;
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/2/2/2/9/9/raise/$raise");
+//$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/2/2/2/9/9/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/makecall/p1_uid/$p1/call/4/4/1/9/9/raise/$raise");
 echo "p1 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
@@ -65,12 +66,13 @@ showRoom($p1,$p2);
 
 //p2 make call
 $raise=12;
-$result = file_get_contents("http://54.213.19.254/gameroom/$pid/call/p2_uid/$p2/call/1/1/1/9/9/raise/$raise");
+//$result = file_get_contents("http://54.213.19.254/gameroom/$pid/call/p2_uid/$p2/call/1/1/1/9/9/raise/$raise");
+$result = file_get_contents("http://54.213.19.254/gameroom/$pid/call/p2_uid/$p2/call/2/2/9/9/9/raise/$raise");
 echo "p2 make call: $result \n";
 echo "\n";
 $json = json_decode($result,true);
 
-showRoom($p1,$p2);
+//showRoom($p1,$p2);
 
 
 ?>

@@ -216,13 +216,18 @@ io:format("get dice comb by score: ~w~n",[DiceScore]),
     end.
 
 diceCompareDescend(Dice1,Dice2) ->
-    io:format("dice compare start  ~n"),
     if 
       (Dice1 == 1) and (Dice2 /= 1) -> true; 
       (Dice1 /= 1) and (Dice2 == 1) -> false;
       (Dice1 == 9) and (Dice2 /= 9) -> false; 
       (Dice1 /= 9) and (Dice2 == 9) -> true;
       Dice1 =< Dice2 -> false;
+      true -> true 
+    end.
+
+sortDescend(Value1,Value2) ->
+    if 
+      Value1 =< Value2-> false;
       true -> true 
     end.
 
@@ -308,8 +313,11 @@ compareDiceScores(DiceList1,DiceList2) ->
     DiceScoresList2 = getDiceScore2(DiceList2,lists:usort(DiceList2),[]),
 
     %sort those 2 arrays in descending order
-    SortedDiceScoresList1 = lists:sort(DiceScoresList1),
-    SortedDiceScoresList2 = lists:sort(DiceScoresList2),
+    SortedDiceScoresList1 = lists:sort(fun sortDescend/2, DiceScoresList1),
+    SortedDiceScoresList2 = lists:sort(fun sortDescend/2, DiceScoresList2),
+
+io:format("BOOOO SortedDiceScoresList1: ~w~n",[SortedDiceScoresList1]),
+io:format("BOOOO SortedDiceScoresList2: ~w~n",[SortedDiceScoresList2]),
 
     compareDiceScoresInternal(SortedDiceScoresList1,SortedDiceScoresList2).
 
