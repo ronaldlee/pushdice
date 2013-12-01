@@ -721,7 +721,7 @@ io:format("wait_for_p2_pick_dice_to_roll ~n"),
 
                 NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
-                FromPid ! {p2,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot},
+                FromPid ! {p2,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults},
                 wait_for_p2_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
             end
     after
@@ -750,7 +750,7 @@ io:format("wait_for_p1_pick_dice_to_roll ~n"),
 
                 NewAllDiceResults = lists:append(AllDiceResults,[NewSortedActualDice]),
 io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
-                FromPid ! {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot},
+                FromPid ! {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults},
                 wait_for_p1_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
             end
     after
@@ -1157,7 +1157,7 @@ out(Arg, [Pid, "accept_game", "p2_uid", Player2_uid,"bind",P2Bind, "buyin",P2Buy
     receive
         {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
 io:format("p1_calldice. ~n",[]),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot},{dice_score,SortedCallDiceScore}]}),
+            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot},{dice_score,SortedCallDiceScore},{p2_buyin,list_to_integer(P2BuyIn)}]}),
             {html, P1DiceResultJsonStr}
     end;
 
@@ -1281,9 +1281,9 @@ out(Arg, [Pid, "rerolldice", "p2_uid", Player2_uid, "dice_pos",DicePos1flag,Dice
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player2_reroll(list_to_pid(Pid),Player2_uid,ReRollDicePosList),
     receive
-        {p2,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,P1Raise,P2Bet,Pot} ->
+        {p2,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,P1Raise,P2Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults} ->
 io:format("p2_dicerolled~n"),
-            ResultJsonStr = mochijson2:encode({struct, [{roll_pos,ReRollDicePosList},{rolled_dice,NewActualDice},{sorted,NewSortedActualDice},{call,SortedCallDice},{bind,P1Bind},{raise,P1Raise},{bet,P2Bet},{pot,Pot}]}),
+            ResultJsonStr = mochijson2:encode({struct, [{roll_pos,ReRollDicePosList},{rolled_dice,NewActualDice},{sorted,NewSortedActualDice},{call,SortedCallDice},{bind,P1Bind},{raise,P1Raise},{bet,P2Bet},{pot,Pot},{all_p1_calls,AllP1Calls},{all_p2_calls,AllP2Calls},{all_dice_results,AllDiceResults}]}),
             {html, ResultJsonStr}
     end;
 
@@ -1317,9 +1317,9 @@ out(Arg, [Pid, "rerolldice", "p1_uid", Player1_uid, "dice_pos",DicePos1flag,Dice
     ReRollDicePosList = [list_to_integer(DicePos1flag),list_to_integer(DicePos2flag),list_to_integer(DicePos3flag),list_to_integer(DicePos4flag),list_to_integer(DicePos5flag)],
     player1_reroll(list_to_pid(Pid),Player1_uid,ReRollDicePosList),
     receive
-        {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot} ->
+        {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults} ->
 io:format("p1_dicerolled~n"),
-            ResultJsonStr = mochijson2:encode({struct, [{roll_pos,ReRollDicePosList},{rolled_dice,NewActualDice},{sorted,NewSortedActualDice},{call,SortedCallDice},{bind,P1Bind},{raise,PrevRaise},{bet,Bet},{pot,Pot}]}),
+            ResultJsonStr = mochijson2:encode({struct, [{roll_pos,ReRollDicePosList},{rolled_dice,NewActualDice},{sorted,NewSortedActualDice},{call,SortedCallDice},{bind,P1Bind},{raise,PrevRaise},{bet,Bet},{pot,Pot},{all_p1_calls,AllP1Calls},{all_p2_calls,AllP2Calls},{all_dice_results,AllDiceResults}]}),
             {html, ResultJsonStr}
     end;
 
