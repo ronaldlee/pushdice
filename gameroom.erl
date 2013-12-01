@@ -1150,7 +1150,7 @@ out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, 
     io:format("init. ~w~n",[Arg]),
 
     %check if player 1 has enough money to pay for buyin first
-    case usermodel:deductCoins(pushdice_pool,Player1_uid,P1Buyin) of
+    case usermodel:deductCoins(pushdice_pool,Player1_uid,list_to_integer(P1Buyin)) of
         true ->
             {NewPid,ActualDice,SortedDice} = start(Player1_uid,Player2_uid,list_to_integer(P1Bind),list_to_integer(P1Buyin)),
             io:format("init 2. ~w~n",[NewPid]),
@@ -1163,18 +1163,26 @@ out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, 
             Output = mochijson2:encode({struct, NewResult2}),
             {html, Output};
         _ ->
-            {html, "{'code':'-1', 'msg':'Not enough coins for buyin'}"}
+            {html, "{\"code\":\"-1\", \"msg\":\"Not enough coins for buyin\"}"}
     end;
 
 out(Arg, [Pid, "accept_game", "p2_uid", Player2_uid,"bind",P2Bind, "buyin",P2BuyIn]) -> 
     io:format("accept_game. ~w, ~w ~n",[list_to_pid(Pid),Arg]),
-    accept_game(list_to_pid(Pid), Player2_uid, list_to_integer(P2Bind),list_to_integer(P2BuyIn)),
-    receive
-        {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
+   
+    %check if player 2 has enough money to pay for buyin 
+    case usermodel:deductCoins(pushdice_pool,Player2_uid,list_to_integer(P2BuyIn)) of
+        true ->
+            accept_game(list_to_pid(Pid), Player2_uid, list_to_integer(P2Bind),list_to_integer(P2BuyIn)),
+            receive
+                {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind", P1Bind, "raise", P1Raise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore} ->
 io:format("p1_calldice. ~n",[]),
-            P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot},{dice_score,SortedCallDiceScore},{p2_buyin,list_to_integer(P2BuyIn)}]}),
-            {html, P1DiceResultJsonStr}
+                    P1DiceResultJsonStr = mochijson2:encode({struct, [{call,SortedCallDice},{min,MinSortedCallDice},{bind,P1Bind},{raise,P1Raise},{pot,Pot},{dice_score,SortedCallDiceScore},{p2_buyin,list_to_integer(P2BuyIn)}]}),
+                    {html, P1DiceResultJsonStr}
+            end;
+        _ ->
+            {html, "{\"code\":\"-1\", \"msg\":\"Not enough coins for buyin\"}"}
     end;
+
 
 %out(Arg, [Pid, "rolldice", "p1_uid", Player1_uid,"buy_in", BuyIn]) -> 
 %    io:format("!rolldice. ~n",[]),

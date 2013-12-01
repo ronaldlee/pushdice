@@ -196,7 +196,7 @@ io:format("session: ~w~w~w~w~w~n",[FetchUsername,FetchPlatId,FetchPlatType,IsNew
              UserInfoJsonStr = mochijson2:encode({struct, UserInfoJson}),
              {html, UserInfoJsonStr};
           true ->
-             {html, "{'code':'-1', 'msg':'Fail to get user data from session.'}"}
+             {html, "{\"code\":\"-1\", \"msg\":\"Fail to get user data from session.\"}"}
       end;
 
 out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) -> 
@@ -262,12 +262,12 @@ io:format("no friends games set: ~n"),
                  end;
                true ->
 io:format("session error! ~n"), 
-                 {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
+                 {html, "{\"code\":\"-1\", \"msg\":\"Fail to get friends data.\"}"}
            end;
          400 ->
-           {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"};
+           {html, "{\"code\":\"-1\", \"msg\":\"Fail to get friends data.\"}"};
          true ->
-           {html, "{'code':'-1', 'msg':'Fail to get friends data.'}"}
+           {html, "{\"code\":\"-1\", \"msg\":\"Fail to get friends data.\"}"}
      end;
     
 out(Arg, ["inapp_purchase","key",Key,"session", Session]) -> 
@@ -286,11 +286,11 @@ io:format("inapp purchases ItemPropValue: ~w ~n",[ItemPropValue]),
 io:format("inapp purchases: ~w~w~w~w~w~n",[FetchUsername,FetchPlatId,FetchPlatType,IsNewAcct,DailyBonus]),
 io:format("inapp purchases coins: ~s~n",[ItemPropValue]),
                  usermodel:incrementCoins(pushdice_pool,integer_to_list(FetchUserId),ItemPropValue),
-                 {html, "{'code':'0', 'msg':'ok'}"};
+                 {html, "{\"code\":\"0\", \"msg\":\"ok\"}"};
              true ->
 io:format("BOOOOO ~n"),
-                 {html, "{'code':'-1', 'msg':'Fail to increment coins.'}"}
+                 {html, "{\"code\":\"-1\", \"msg\":\"Fail to increment coins.\"}"}
          end;
        true->
-         {html, "{'code':'-1', 'msg':'Fail to increment coins.'}"}
+         {html, "{\"code\":\"-1\", \"msg\":\"Fail to increment coins.\"}"}
      end.
