@@ -316,8 +316,8 @@ compareDiceScores(DiceList1,DiceList2) ->
     SortedDiceScoresList1 = lists:sort(fun sortDescend/2, DiceScoresList1),
     SortedDiceScoresList2 = lists:sort(fun sortDescend/2, DiceScoresList2),
 
-io:format("BOOOO SortedDiceScoresList1: ~w~n",[SortedDiceScoresList1]),
-io:format("BOOOO SortedDiceScoresList2: ~w~n",[SortedDiceScoresList2]),
+%io:format("BOOOO SortedDiceScoresList1: ~w~n",[SortedDiceScoresList1]),
+%io:format("BOOOO SortedDiceScoresList2: ~w~n",[SortedDiceScoresList2]),
 
     compareDiceScoresInternal(SortedDiceScoresList1,SortedDiceScoresList2).
 
@@ -1148,6 +1148,10 @@ out(Arg, [Pid, "check"]) ->
 
 out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, "buyin", P1Buyin]) -> 
     io:format("init. ~w~n",[Arg]),
+
+    %check if player 1 has enough money to pay for buyin first
+
+
     {NewPid,ActualDice,SortedDice} = start(Player1_uid,Player2_uid,list_to_integer(P1Bind),list_to_integer(P1Buyin)),
     io:format("init 2. ~w~n",[NewPid]),
     Response = [ {code,"ok"}, {pid,pid_to_list(NewPid)} ],
@@ -1403,6 +1407,13 @@ out(Arg, ["testgroup"])->
 
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
 
+    {html, Output};
+
+out(Arg, ["testcheckcoins","uid",Uid])->
+    io:format("test checkcoins~w~n",[Arg]),
+    Recs = usermodel:deductCoins(pushdice_pool,Uid,10),
+
+    Output = mochijson2:encode({struct, [ {status,ok} ]}),
     {html, Output};
 
 out(Arg, ["list", "uid", Uid]) -> 

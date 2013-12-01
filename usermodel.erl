@@ -8,6 +8,7 @@
 -export([updateIOSPushToken/3]).
 -export([getUserSessionData/1]).
 -export([incrementCoins/3]).
+-export([deductCoins/3]).
 
 
 -record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
@@ -35,6 +36,36 @@ getUserByUsernameAndPlatID(DB_pool,Username,PlatID,PlatType) ->
 incrementCoins(DB_pool,UID,Coins) ->
   UpdateCoinsSQL = io_lib:format("Update user set coins=coins+~s WHERE user_id='~s'",[Coins,UID]),
   emysql:execute(DB_pool, UpdateCoinsSQL).
+
+deductCoins(DB_pool,UID,Coins) ->
+  SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~s'",[UID]),
+  SelectResult = emysql:execute(DB_pool, SelectSQL),
+  Recs = emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)),
+
+  SelectLength = length(Recs),
+
+  case SelectLength of 
+    1->
+      %[{game_user,FoundUserId,FoundUsername,FoundPlatId,FoundPlatType,
+      %{datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
+      %ConsecDaysPlayed,IsUnlocked,FoundCoins} | _ ] = Recs,
+
+      [{game_user,_,_,_,_,_,_,_,FoundCoins} | _ ] = Recs,
+io:format("hasEnoughCoins FoundCoins: ~w, Coins: ~w ~n",[FoundCoins,Coins]),
+      if 
+        FoundCoins >= Coins ->
+io:format("hasEnoughCoins has enough~n"),
+          DeductSQL = io_lib:format("UPDATE user set coins=coins-~s WHERE user_id='~s'",[integer_to_list(Coins),UID]),
+io:format("hasEnoughCoins sql: ~s~n",[DeductSQL]),
+          emysql:execute(DB_pool, DeductSQL),
+          true;
+        true -> 
+io:format("hasEnoughCoins NOT enough~n"),
+          false
+      end;
+    _->
+      false
+  end.
 
 incrementLastPlayAndConsecDaysPlayed(DB_pool,UID) ->
   UpdateConsecDaysPlayedSQL = io_lib:format("Update user set last_play_date=NULL,consecutive_days_played=consecutive_days_played+1 WHERE user_id='~s'",[UID]),
