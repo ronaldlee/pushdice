@@ -1150,18 +1150,21 @@ out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, 
     io:format("init. ~w~n",[Arg]),
 
     %check if player 1 has enough money to pay for buyin first
-
-
-    {NewPid,ActualDice,SortedDice} = start(Player1_uid,Player2_uid,list_to_integer(P1Bind),list_to_integer(P1Buyin)),
-    io:format("init 2. ~w~n",[NewPid]),
-    Response = [ {code,"ok"}, {pid,pid_to_list(NewPid)} ],
-    ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
-    StringConverted = lists:map(ConvertFun, Response),
-    io:format("init 2. ~w~n",[StringConverted]),
-    NewResult = lists:append(StringConverted,[{actual,ActualDice}]),
-    NewResult2 = lists:append(NewResult,[{sorted,SortedDice}]),
-    Output = mochijson2:encode({struct, NewResult2}),
-    {html, Output};
+    case usermodel:deductCoins(pushdice_pool,Player1_uid,P1Buyin) of
+        true ->
+            {NewPid,ActualDice,SortedDice} = start(Player1_uid,Player2_uid,list_to_integer(P1Bind),list_to_integer(P1Buyin)),
+            io:format("init 2. ~w~n",[NewPid]),
+            Response = [ {code,"ok"}, {pid,pid_to_list(NewPid)} ],
+            ConvertFun = fun({X,Y}) -> {X,list_to_binary(Y)} end,
+            StringConverted = lists:map(ConvertFun, Response),
+            io:format("init 2. ~w~n",[StringConverted]),
+            NewResult = lists:append(StringConverted,[{actual,ActualDice}]),
+            NewResult2 = lists:append(NewResult,[{sorted,SortedDice}]),
+            Output = mochijson2:encode({struct, NewResult2}),
+            {html, Output};
+        _ ->
+            {html, "{'code':'-1', 'msg':'Not enough coins for buyin'}"}
+    end;
 
 out(Arg, [Pid, "accept_game", "p2_uid", Player2_uid,"bind",P2Bind, "buyin",P2BuyIn]) -> 
     io:format("accept_game. ~w, ~w ~n",[list_to_pid(Pid),Arg]),
@@ -1406,7 +1409,6 @@ out(Arg, ["testgroup"])->
     io:format("test group list: ~w~n",[NewList]),
 
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
-
     {html, Output};
 
 out(Arg, ["testcheckcoins","uid",Uid])->

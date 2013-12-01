@@ -50,6 +50,10 @@ $pid = null;
 if (isset($json['pid'])) {
     $pid = $json['pid'];  
 }
+else {
+echo "Fail to init game room, probably not enough money to pay for buyin.\n";
+exit -1;
+}
 
 $comb_result = showRoom($p1,$p2);
 echo "after init:\n";
