@@ -18,7 +18,7 @@ getUser(DB_pool,UID) ->
   emysql_util:as_record(SelectResult, game_user, record_info(fields, game_user)).
 
 createUser(DB_pool,Username,PlatID,PlatType,AccessToken,IOSPushToken) ->
-  InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,ios_push_token,consecutive_days_played,coins,last_play_date) values ('~s','~s','~s','~s','~s','1','1000',NULL)",[Username,PlatID,PlatType,AccessToken,IOSPushToken]),
+  InsertSql = io_lib:format("INSERT INTO user (name,plat_id,plat_type,fb_accesstoken,ios_push_token,consecutive_days_played,coins,last_play_date) values ('~s','~s','~s','~s','~s','1','1000',NULL) ON DUPLICATE KEY UPDATE name='~s', fb_accesstoken='~s', ios_push_token='~s', consecutive_days_played=consecutive_days_played+1, last_play_date=NULL",[Username,PlatID,PlatType,AccessToken,IOSPushToken,Username,AccessToken,IOSPushToken]),
   emysql:execute(DB_pool, InsertSql).
 
 

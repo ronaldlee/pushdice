@@ -40,13 +40,14 @@ processFBFriendsJson([FriendData|Rest],FriendsList ) ->
   {_,FBID} = IdData,
   NewFBData = [{name,Name},{id,FBID}],
   NewFriendsList = lists:append(FriendsList,[NewFBData]),
-io:format("boo ~w~n",[NewFriendsList]),
+%io:format("boo ~w~n",[NewFriendsList]),
   processFBFriendsJson(Rest,NewFriendsList).
 
 populateFriendsList([],FBFriendsList,GamePlayersList,PushFriendsGamesList) ->
   {FBFriendsList,GamePlayersList};
 populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList,PushFriendsGamesList) ->
   {FB_UID,FB_ID_NAME} = FB_data,
+%io:format("***** populateFriendsList: uid: ~s~n",[FB_UID]),
   %check if FB user is also a player
   Recs = usermodel:getUserByPlatID(pushdice_pool,FB_UID,fb),
   SelectLength = length(Recs),
@@ -54,6 +55,7 @@ populateFriendsList([FB_data|Rest],FBFriendsList,GamePlayersList,PushFriendsGame
     1->
      [{game_user,NewUserId,FoundUsername,FoundId,FoundType,{datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
              ConsecDaysPlayed,IsUnlocked,Coins} | _ ] = Recs,
+io:format("is game player:fb uid ~s~n",[FB_UID]),
 
       %check if the player already has a game playing with this user.
       case lists:member(FB_UID,PushFriendsGamesList) of
@@ -217,11 +219,12 @@ out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) ->
            io:format("200 trimmed friends: ~w~n",[TrimmdFriendsList]),
 
            ConvertFun = fun([{name,X},{id,Y}]) -> 
-               io:format("uuu ~s,~s~n",[binary_to_list(X),binary_to_list(Y)]), 
+               %io:format("uuu ~s,~s~n",[binary_to_list(X),binary_to_list(Y)]), 
                {Y,{struct,[{name,X},{fbuid,Y}]}} 
            end,
 
            StringConverted = lists:map(ConvertFun, TrimmdFriendsList),
+io:format("string converted: ~w~n",[StringConverted]), 
 
            FetchUserData = usermodel:getUserSessionData(Session),
 
@@ -230,7 +233,9 @@ out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) ->
                  %get the user id, for getting the friends_game map from redis to see 
                  %if friends already have a game with this user.
                  %can we grab the game list and put it in a hashtable?
-                 PushFriendsGamesKey = io_lib:format("pfg_~w",[FetchUserId]),
+                 PushFriendsGamesKey = io_lib:format("pfg_~s",[FetchPlatId]),
+
+io:format("PushFriendsGamesKey: ~s~n",[PushFriendsGamesKey]), 
 
                  {ok, C} = eredis:start_link(),
                  PushFriendsGamesListResponse = eredis:q(C, ["SMEMBERS", PushFriendsGamesKey]),
@@ -241,7 +246,7 @@ out(Arg, ["friends", "accesstoken", AccessToken, "session", Session]) ->
                  case PushFriendsGamesListResponse of 
                  %case FakeResponse of 
                    {ok, PushFriendsGamesList} ->
-io:format("has friends games set: ~n"), 
+io:format("has friends games set: ~w~n",[PushFriendsGamesList]), 
                      {FBFriendsList,GamePlayersList} = populateFriendsList(StringConverted,[],[],PushFriendsGamesList),
 %io:format("fb friend: ~w~n",[FBFriendsList]),
 io:format("player friend: ~w~n",[GamePlayersList]),
