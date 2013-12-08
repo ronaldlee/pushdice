@@ -410,6 +410,7 @@ io:format("dice score ~w~n",[IsValid]),
             io:format("whatt!! ~n",[])
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
             game_over(Player1_uid, lose, Player2_uid, win,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -449,6 +450,7 @@ io:format("p2 wait for trust or not.. ~n"),
             end
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
             game_over(Player1_uid, win , Player2_uid, lose,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -472,6 +474,8 @@ wait_for_p2_findcall(?STATE) ->
             end
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
             game_over(Player1_uid, win , Player2_uid, lose,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -495,6 +499,8 @@ wait_for_p1_findcall(?STATE) ->
             end
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
             game_over(Player1_uid, lose , Player2_uid, win,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -575,11 +581,17 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                     if 
                         (IsActualMatchCall) -> 
                             io:format("p1 call match actual! p2 lose.. ~n"),
+                            %p2 get own buyin, whatever is left.
+                            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
+                            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
                             FromPid ! {p2,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
                             game_over(Player1_uid,win,Player2_uid,lose,
                                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false);
                         true ->
                             io:format("p1 call NOT match actual! p2 win.. ~n"),
+                            %p2 get own buyin + pot.
+                            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
+                            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
                             %update p2 player's coin by adding pot
                             FromPid ! {p2,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,NewPot},
                             game_over(Player1_uid,lose,Player2_uid,win,
@@ -589,6 +601,8 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
             end
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
             game_over(Player1_uid, win, Player2_uid, lose,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -658,11 +672,17 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
                     if 
                         (IsActualMatchCall) -> 
                             io:format("p2 call match actual! p1 lose.. ~n"),
+                            %p1 get own buyin, whatever is left.
+                            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+                            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
                             FromPid ! {p1,lose,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
                             game_over(Player1_uid,lose,Player2_uid,win,
                                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false);
                         true ->
                             io:format("p2 call NOT match actual! p1 win.. ~n"),
+                            %p1 get own buyin + pot.
+                            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+                            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
                             %update p2 player's coin by adding pot
                             FromPid ! {p1,win,SortedCallDice,SortedActualDice,P1Bind,PrevRaise,Pot},
                             game_over(Player1_uid,win,Player2_uid,lose,
@@ -672,6 +692,8 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
             end
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
             game_over(Player1_uid, lose, Player2_uid, win,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -734,6 +756,8 @@ io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
             end
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
             game_over(Player1_uid, win, Player2_uid, lose,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -763,6 +787,8 @@ io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
             end
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
             game_over(Player1_uid, lose, Player2_uid, win,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -833,6 +859,8 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
             wait_for_p2_call(?STATE) 
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
             game_over(Player1_uid, win, Player2_uid, lose,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
@@ -904,6 +932,8 @@ io:format("wait_for_p1_call others..."),
             wait_for_p1_call(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
+            usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+            usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
             game_over(Player1_uid, lose, Player2_uid, win,
                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
     end.
