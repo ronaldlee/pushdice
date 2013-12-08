@@ -372,6 +372,16 @@ init_gameroom(Player1_uid,Player2_uid,P1Bind,P1BuyIn,NewActualDice,SortedActualD
 
 wait_for_p1_makecall(?STATE) ->
     receive
+        {p1,fold,ExtPlayer1_uid} ->
+            %fold at very beginning, no one lose, p1 get back buyin
+            if 
+              (ExtPlayer1_uid /= Player1_uid) -> 
+                wait_for_p1_makecall(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+                game_over(Player1_uid, win, Player2_uid, win,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} -> 
             FromPid ! [Player1_uid,p1,wait_for,makecall,opp_puid,Player2_uid,?CHECK_STATE],
             wait_for_p1_makecall(?STATE);
@@ -407,6 +417,7 @@ io:format("dice score ~w~n",[IsValid]),
               end
             end;
         _ -> 
+            wait_for_p1_makecall(?STATE),
             io:format("whatt!! ~n",[])
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
@@ -418,6 +429,16 @@ io:format("dice score ~w~n",[IsValid]),
 wait_for_p2_acceptgame(?STATE) ->
     io:format("wait for p2 acceptgame ~n",[]),
     receive
+        {p2,fold,ExtPlayer2_uid} ->
+            %fold at very beginning, no one lose, p1 get back buyin (p2 not yet deduct buyin since he hasn't accepted the game yet
+            if 
+              (ExtPlayer2_uid /= Player2_uid) -> 
+                wait_for_p2_acceptgame(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+                game_over(Player1_uid, win, Player2_uid, win,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} -> 
             FromPid ! [Player2_uid,p2,wait_for,accept_game,opp_puid,Player1_uid,?CHECK_STATE],
             wait_for_p2_acceptgame(?STATE);
@@ -447,7 +468,9 @@ io:format("p2 wait for trust or not.. ~n"),
                 NewPot = Pot + P2Bind,
                 FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",NewPot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p2_trust_or_not(Player1_uid,Player2_uid,SortedCallDice,SortedActualDice,[],P1Bind,OrigBuyIn,P1BuyIn,NewP2BuyIn-P2Bind,PrevRaise,Bet,NewPot,AllP1Calls,AllP2Calls,AllDiceResults)
-            end
+            end;
+        _ -> 
+            wait_for_p2_acceptgame(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
             usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
@@ -458,6 +481,17 @@ io:format("p2 wait for trust or not.. ~n"),
 wait_for_p2_findcall(?STATE) ->
     io:format("wait for p2 find call~n",[]),
     receive
+        %p2 accepted game and deducted buyin, but decide to fold. that means p1 win
+        {p2,fold,ExtPlayer2_uid} ->
+            if 
+              (ExtPlayer2_uid /= Player2_uid) -> 
+                wait_for_p2_findcall(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
+                game_over(Player1_uid, win, Player2_uid, lose,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} -> 
             FromPid ! [Player2_uid,p2,wait_for,find_call,opp_puid,Player1_uid,?CHECK_STATE],
             wait_for_p2_findcall(?STATE);
@@ -471,7 +505,9 @@ wait_for_p2_findcall(?STATE) ->
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
                 FromPid ! {p1,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p2_trust_or_not(?STATE)
-            end
+            end;
+        _ -> 
+            wait_for_p2_findcall(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
             usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
@@ -483,6 +519,17 @@ wait_for_p2_findcall(?STATE) ->
 wait_for_p1_findcall(?STATE) ->
     io:format("wait for p1 find call~n",[]),
     receive
+        %p1 fold, p2 win
+        {p1,fold,ExtPlayer1_uid} ->
+            if 
+              (ExtPlayer1_uid /= Player1_uid) -> 
+                wait_for_p1_findcall(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
+                game_over(Player1_uid, lose, Player2_uid, win,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} -> 
             FromPid ! [Player1_uid,p1,wait_for,find_call,opp_puid,Player2_uid,?CHECK_STATE],
             wait_for_p1_findcall(?STATE);
@@ -496,7 +543,9 @@ wait_for_p1_findcall(?STATE) ->
                 MinSortedCallDice = getDiceCombByScore(SortedCallDiceScore+1),
                 FromPid ! {p2,"calldice", SortedCallDice, "min_call", MinSortedCallDice, "p1_bind",P1Bind, "raise",PrevRaise,"pot",Pot,"sorted_call_dice_score",SortedCallDiceScore},
                 wait_for_p1_trust_or_not(?STATE)
-            end
+            end;
+        _ -> 
+            wait_for_p1_findcall(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
             usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
@@ -516,6 +565,17 @@ appendWildCardToList(TargetList,Count) ->
 wait_for_p2_trust_or_not(?STATE) ->
 io:format("wait for p2 trust or not, call: ~w; actual: ~w ~n",[SortedCallDice,SortedActualDice]),
     receive
+        %p2 fold, p1 win
+        {p2,fold,ExtPlayer2_uid} ->
+            if 
+              (ExtPlayer2_uid /= Player2_uid) -> 
+                wait_for_p2_trust_or_not(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
+                game_over(Player1_uid, win, Player2_uid, lose,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} -> 
             FromPid ! [Player2_uid,p2,wait_for,trust_or_not,opp_puid,Player1_uid,?CHECK_STATE],
             wait_for_p2_trust_or_not(?STATE);
@@ -598,7 +658,9 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false)
                     end
                   end
-            end
+            end;
+        _ -> 
+            wait_for_p2_trust_or_not(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
             usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
@@ -610,6 +672,17 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
 wait_for_p1_trust_or_not(?STATE) ->
 io:format("wait for p1 trust or not, call: ~w; actual: ~w ~n",[SortedCallDice,SortedActualDice]),
     receive
+        %p1 fold, p2 win
+        {p1,fold,ExtPlayer1_uid} ->
+            if 
+              (ExtPlayer1_uid /= Player1_uid) -> 
+                wait_for_p1_trust_or_not(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
+                game_over(Player1_uid, lose, Player2_uid, win,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} -> 
             FromPid ! [Player1_uid,p1,wait_for,trust_or_not,opp_puid,Player2_uid,?CHECK_STATE],
             wait_for_p1_trust_or_not(?STATE);
@@ -689,7 +762,9 @@ io:format("p1_trust, bet: ~w, prevraise: ~w~n",[Bet,PrevRaise]),
                                       Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,false)
                     end
                 end
-            end
+            end;
+        _ -> 
+            wait_for_p1_trust_or_not(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
             usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
@@ -734,6 +809,17 @@ rerollDice(SortedActualDice,ReRollDiceFlagList,NewActualDice) ->
 wait_for_p2_pick_dice_to_roll(?STATE) ->
 io:format("wait_for_p2_pick_dice_to_roll ~n"),
     receive
+        %p2 fold, p1 win
+        {p2,fold,ExtPlayer2_uid} ->
+            if 
+              (ExtPlayer2_uid /= Player2_uid) -> 
+                wait_for_p2_pick_dice_to_roll(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
+                game_over(Player1_uid, win, Player2_uid, lose,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} ->
             FromPid ! [Player2_uid,p2,wait_for,rerolldice,opp_puid,Player1_uid,?CHECK_STATE],
             wait_for_p2_pick_dice_to_roll(?STATE);
@@ -753,7 +839,9 @@ io:format("wait_for_p2_pick_dice_to_roll ~n"),
 io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
                 FromPid ! {p2,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults},
                 wait_for_p2_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
-            end
+            end;
+        _ -> 
+            wait_for_p2_pick_dice_to_roll(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
             usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
@@ -765,6 +853,17 @@ io:format("p2_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
 wait_for_p1_pick_dice_to_roll(?STATE) ->
 io:format("wait_for_p1_pick_dice_to_roll ~n"),
     receive
+        %p1 fold, p2 win
+        {p1,fold,ExtPlayer1_uid} ->
+            if 
+              (ExtPlayer1_uid /= Player1_uid) -> 
+                wait_for_p1_pick_dice_to_roll(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
+                game_over(Player1_uid, lose, Player2_uid, win,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} ->
             FromPid ! [Player1_uid,p1,wait_for,rerolldice,opp_puid,Player2_uid,?CHECK_STATE],
             wait_for_p1_pick_dice_to_roll(?STATE);
@@ -784,7 +883,9 @@ io:format("wait_for_p1_pick_dice_to_roll ~n"),
 io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
                 FromPid ! {p1,dicerolled,SortedCallDice,NewActualDice,NewSortedActualDice,P1Bind,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,AllDiceResults},
                 wait_for_p1_call(Player1_uid,Player2_uid,SortedCallDice,NewSortedActualDice,SortedActualDice,P1Bind,OrigBuyIn,P1BuyIn,P2BuyIn,PrevRaise,Bet,Pot,AllP1Calls,AllP2Calls,NewAllDiceResults)
-            end
+            end;
+        _ -> 
+            wait_for_p1_pick_dice_to_roll(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
             usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
@@ -796,6 +897,17 @@ io:format("p1_reroll NewSortedActualDice: ~w~n",[NewSortedActualDice]),
 wait_for_p2_call(?STATE) ->
     io:format("wait_for_p2_call~n"),
     receive
+        %p2 fold, p1 win
+        {p2,fold,ExtPlayer2_uid} ->
+            if 
+              (ExtPlayer2_uid /= Player2_uid) -> 
+                wait_for_p2_call(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn+Pot),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn),
+                game_over(Player1_uid, lose, Player2_uid, win,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} ->
             if is_pid(FromPid) -> io:format("from is pid!~n"); true -> io:format("from is not pid!~n") end,
 
@@ -855,7 +967,7 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
                     wait_for_p2_call(?STATE) 
                 end
             end;
-        true -> 
+        _ -> 
             wait_for_p2_call(?STATE) 
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
@@ -868,6 +980,17 @@ io:format("p2_call SortedActualDice: ~w~n",[SortedActualDice]),
 wait_for_p1_call(?STATE) ->
     io:format("wait_for_p1_call~n"),
     receive
+        %p1 fold, p2 win
+        {p1,fold,ExtPlayer1_uid} ->
+            if 
+              (ExtPlayer1_uid /= Player1_uid) -> 
+                wait_for_p1_call(?STATE);
+              true ->    
+                usermodel:incrementCoins(pushdice_pool,Player1_uid,P1BuyIn),
+                usermodel:incrementCoins(pushdice_pool,Player2_uid,P2BuyIn+Pot),
+                game_over(Player1_uid, lose, Player2_uid, win,
+                          Pot,Bet,SortedCallDice,SortedActualDice,PrevSortedActualDice,P1Bind,P1BuyIn,P2BuyIn,PrevRaise,OrigBuyIn,true)
+            end;
         {check, FromPid} ->
 io:format("wait_for_p1_call check:from ~w~n",[FromPid]),
             if is_pid(FromPid) -> io:format("from is pid!~n"); true -> io:format("from is not pid!~n") end,
@@ -927,8 +1050,7 @@ io:format("p1_call SortedActualDice: ~w~n",[SortedActualDice]),
                     wait_for_p1_call(?STATE) 
                 end
             end;
-        true -> 
-io:format("wait_for_p1_call others..."),
+        _ -> 
             wait_for_p1_call(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
@@ -995,6 +1117,11 @@ player2_reroll(Pid,ExtPlayer2_uid,ReRollDicePosList) ->
     Pid ! {p2,reroll,ExtPlayer2_uid,self(),ReRollDicePosList}.
 player1_reroll(Pid,ExtPlayer1_uid,ReRollDicePosList) ->
     Pid ! {p1,reroll,ExtPlayer1_uid,self(),ReRollDicePosList}.
+
+player2_fold(Pid,ExtPlayer2_uid) ->
+    Pid ! {p2,fold,ExtPlayer2_uid,self()}.
+player1_fold(Pid,ExtPlayer1_uid) ->
+    Pid ! {p1,fold,ExtPlayer1_uid,self()}.
 
 getPlayerInfo(PlayerID) ->
     %SelectSQL = io_lib:format("SELECT user_id,name,plat_id,plat_type,last_play_date,consecutive_days_played,is_unlocked,coins from user WHERE user_id='~s'",[PlayerID]),
@@ -1174,6 +1301,20 @@ out(Arg, [Pid, "check"]) ->
         State -> State
     end,
     Output = mochijson2:encode({struct, [RoomState]}),
+    {html, Output};
+
+out(Arg, [Pid, "fold", "p1_uid", Player1_uid]) -> 
+    io:format("p1 fold. ~w~n",[Arg]),
+
+    player1_fold(Pid,Player1_uid),
+    Output = mochijson2:encode({struct, [ {status,ok} ]}),
+    {html, Output};
+
+out(Arg, [Pid, "fold", "p2_uid", Player2_uid]) -> 
+    io:format("p2 fold. ~w~n",[Arg]),
+
+    player2_fold(Pid,Player2_uid),
+    Output = mochijson2:encode({struct, [ {status,ok} ]}),
     {html, Output};
 
 out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, "buyin", P1Buyin]) -> 
@@ -1376,7 +1517,7 @@ io:format("p1_dicerolled~n"),
             {html, ResultJsonStr}
     end;
 
-out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
+out(Arg, [Pid, "call", "p1_uid", Player1_uid, "call",D1,D2,D3,D4,D5,"raise",P1Raise]) -> 
     %io:format("p1 make call. ~s~n",[Pid]),
     io:format("p1 make call. ~w~n",[Arg]),
     P1RaiseInt = list_to_integer(P1Raise),
@@ -1384,7 +1525,7 @@ out(Arg, [Pid, "call", "p1_uid", Player2_uid, "call",D1,D2,D3,D4,D5,"raise",P1Ra
     RawCallDice = lists:map(ConvertFun, [D1,D2,D3,D4,D5]),
     SortedCallDice = lists:sort(fun diceCompareDescend/2,RawCallDice),
 
-    ValidCall = player1_call(list_to_pid(Pid),Player2_uid,SortedCallDice,P1RaiseInt),
+    ValidCall = player1_call(list_to_pid(Pid),Player1_uid,SortedCallDice,P1RaiseInt),
     case ValidCall of 
         {valid_call,Pot} ->
             Response = [ {code,valid_call},{call,SortedCallDice},{raise,P1RaiseInt},{pot,Pot} ],
