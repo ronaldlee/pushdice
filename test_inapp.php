@@ -13,4 +13,6 @@ $session = $json['session'];
 echo "session: $session \n";
 
 $result = file_get_contents("http://54.213.19.254/pushdice/inapp_purchase/key/com.digitalmochi.pushdices.coin1/session/$session");
+
+echo "result: $result \n";
 ?>

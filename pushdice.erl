@@ -283,12 +283,23 @@ io:format("inapp purchases ItemPropValue: ~w ~n",[ItemPropValue]),
          case usermodel:getUserSessionData(Session) of
              {{user_id,FetchUserId},{name,FetchUsername},{plat_id,FetchPlatId},{plat_type,FetchPlatType},{is_new_acct,IsNewAcct},{dailybonus,DailyBonus}} ->
 
-io:format("inapp purchases: ~w~w~w~w~w~n",[FetchUsername,FetchPlatId,FetchPlatType,IsNewAcct,DailyBonus]),
-io:format("inapp purchases coins: ~s~n",[ItemPropValue]),
+io:format("inapp purchases: ~w~w~w~w~w~w~n",[FetchUserId,FetchUsername,FetchPlatId,FetchPlatType,IsNewAcct,DailyBonus]),
                  usermodel:incrementCoins(pushdice_pool,integer_to_list(FetchUserId),ItemPropValue),
-                 {html, "{\"code\":\"0\", \"msg\":\"ok\"}"};
+
+                 UserData= usermodel:getUser(pushdice_pool,integer_to_list(FetchUserId)),
+                 SelectLength = length(UserData),
+                 {Coins} = case SelectLength of
+                     1->
+                         [{game_user,_,_,_,_,_,_,_,FoundCoins} | _ ] = UserData,
+                         {FoundCoins};
+                     _->
+                         {"-1"}
+                 end,
+
+                 %Response = mochijson2:encode({struct, [{code,0},{msg,ok},{coins,Coins}]}),
+                 Response = io_lib:format("{\"code\":\"0\", \"msg\":\"ok.\", \"coins\":\"~w\"}",[Coins]),
+                 {html, Response};
              true ->
-io:format("BOOOOO ~n"),
                  {html, "{\"code\":\"-1\", \"msg\":\"Fail to increment coins.\"}"}
          end;
        true->
