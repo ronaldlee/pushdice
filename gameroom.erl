@@ -1621,7 +1621,20 @@ out(Arg, ["list", "uid", Uid]) ->
     %io:format("list game rooms 3. ~w , ~w ~n",[MyTurnList2,OthersTurnList2]),
 
     io:format("list game rooms 3. ~n",[]),
-    Response = [ {myturn, {struct,MyTurnList2} },{othersturn, {struct,OthersTurnList2} } ],
+
+    Recs = usermodel:getUser(pushdice_pool,Uid),
+    SelectLength = length(Recs),
+    {Coins} = case SelectLength of
+        1->
+            [{game_user,_,_,_,_,_,_,_,FoundCoins} | _ ] = Recs,
+            {FoundCoins};
+        _->
+            {"-1"}
+    end,
+
+    Response = [ {properties, {struct, [{coins, Coins}]} }, {myturn, {struct,MyTurnList2} },{othersturn, {struct,OthersTurnList2} } ],
+    %Response = [ {myturn, {struct,MyTurnList2} },{othersturn, {struct,OthersTurnList2} } ],
+
     Output = mochijson2:encode({struct, Response}),
     io:format("list game rooms 4. ~n",[]),
     {html, Output}.
