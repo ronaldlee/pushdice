@@ -9,6 +9,7 @@
 -export([getUserSessionData/1]).
 -export([incrementCoins/3]).
 -export([deductCoins/3]).
+-export([getRandomPlayers/3]).
 
 
 -record(game_user, {user_id, name, plat_id, plat_type,last_play_date,consecutive_days_played,is_unlocked,coins}).
@@ -86,8 +87,9 @@ io:format("get user session key: ~s ~n",[FetchUserSessionCacheKey]),
 io:format("get user session data: ~w ~n",[FetchUserBinData]),
  binary_to_term(FetchUserBinData).
 
-
-
-
-
+getRandomPlayers(DB_pool,UID,NumPlayers) ->
+  RandomPlayers = io_lib:format("select * from user where user_id != ~s order by rand() limit ~s",[UID,NumPlayers]),
+  io:format("getRandomPlayers: ~s ~n",[RandomPlayers]),
+  Data = emysql:execute(DB_pool, RandomPlayers),
+  emysql_util:as_record(Data, game_user, record_info(fields, game_user)).
 

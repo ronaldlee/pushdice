@@ -215,6 +215,18 @@ io:format("get dice comb by score: ~w~n",[DiceScore]),
 	_ -> false 
     end.
 
+%ronn
+createUsersJson([],JsonResults) ->
+    JsonResults;
+createUsersJson([H|Rest],JsonResults) ->
+    {game_user,UserId,Username,PlatId,PlatType,
+    {datetime,{{LastPlayYear,LastPlayMonth,LastPlayDay},{LastPlayHr,LastPlayMin,LastPlaySec}}},
+    ConsecDaysPlayed,IsUnlocked,Coins} = H,
+
+    %append JsonResults
+    NewJsonResults = lists:append(JsonResults,[{UserId,{struct,[{name,Username},{plat_id,PlatId},{coins,Coins}]}}]),
+    createUsersJson(Rest,NewJsonResults).
+
 diceCompareDescend(Dice1,Dice2) ->
     if 
       (Dice1 == 1) and (Dice2 /= 1) -> true; 
@@ -1552,6 +1564,17 @@ out(Arg, ["del", "uid", Uid]) ->
     eredis:stop(C),
 
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
+
+    {html, Output};
+
+out(Arg, ["getRandomPlayers", "uid", Uid]) -> 
+    io:format("getRandomPlayers. ~w~n",[Arg]),
+    RandomPlayers = usermodel:getRandomPlayers(pushdice_pool,Uid,integer_to_list(3)),
+
+    io:format("RandomPlayers: ~w ~n",[RandomPlayers]),
+
+    JsonResults = createUsersJson(RandomPlayers,[]),
+    Output = mochijson2:encode({struct, [{random_players, {struct,JsonResults} }]}),
 
     {html, Output};
 
