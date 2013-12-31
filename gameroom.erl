@@ -5,6 +5,7 @@
 -define(MAX_DICE_SCORE,75).
 %2 days
 -define(EXPIRE_GAME_DURATION_IN_MSEC,172800000).
+-define(EXPIRE_CHECKROOM_IN_MSEC,100).
 
 %5minutes
 %-define(EXPIRE_GAME_DURATION_IN_MSEC,30000).
@@ -1153,9 +1154,9 @@ getPlayerInfo(PlayerID) ->
             {PlayerID,unknown,"","0"}
     end.
 
-checkRoomTurns([],MyTurnList,OthersTurnList,P) ->
+checkRoomTurns([],MyTurnList,OthersTurnList,P,RoomsSetKey) ->
     {myturn,MyTurnList,othersturn,OthersTurnList};
-checkRoomTurns(MyRoomsList,MyTurnList,OthersTurnList,P) ->
+checkRoomTurns(MyRoomsList,MyTurnList,OthersTurnList,P,RoomsSetKey) ->
     [RoomId|Rooms] = MyRoomsList,
 io:format("check room 1 ~s-~w~n",[binary_to_list(RoomId),self()]),
     RoomIdList = binary_to_list(RoomId),
@@ -1213,7 +1214,7 @@ io:format("GGGGGGGGGGGG AMMMMMMM ovERRRRRRRRRRRRRRR ~n"),
 ]} }])
             end,
 io:format("check room user == P ~w~n",[NewMyTurnList]),
-            checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P);
+            checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P,RoomsSetKey);
         [PlayerID|Data] -> 
 io:format("check return ~n",[]),
             [PRole|Rest] = Data,
@@ -1259,16 +1260,25 @@ io:format("check room user ==~n",[]),
                 %NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,list_to_binary(Username)}]} }]),
                 NewMyTurnList = lists:append(MyTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet},{currentcall,SCalledDice},{currentdice,SActualDice},{lastdice,PrevSActualDice},{bind,Bind},{p1_buyin,P1_Buyin},{p2_buyin,P2_Buyin},{opp_uid,OppUserId},{opp_name,OppUsername},{opp_platid,OppPlatId},{prev_raise,Prev_raise},{orig_buyin,Orig_BuyIn},{all_p1_calls,AllP1Calls},{all_p2_calls,AllP2Calls},{all_dice_results,AllDiceResults}]} }]),
 io:format("check room user == P ~w~n",[NewMyTurnList]),
-                checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P);
+                checkRoomTurns(Rooms,NewMyTurnList,OthersTurnList,P,RoomsSetKey);
               true ->
                 %NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,State}]),
                 NewOthersTurnList = lists:append(OthersTurnList,[{RoomId,{struct,[{act,State},{p,PRole},{puid,list_to_binary(PlayerID)},{name,Username},{pot,CurrentPot},{bet,CurrentBet},{currentcall,SCalledDice},{currentdice,SActualDice},{lastdice,PrevSActualDice},{bind,Bind},{p1_buyin,P1_Buyin},{p2_buyin,P2_Buyin},{opp_uid,UserId},{opp_name,Username},{opp_platid,PlatId},{prev_raise,Prev_raise},{orig_buyin,Orig_BuyIn},{all_p1_calls,AllP1Calls},{all_p2_calls,AllP2Calls},{all_dice_results,AllDiceResults}]} }]),
 io:format("check room user != P ~w~n",[NewOthersTurnList]),
-                checkRoomTurns(Rooms,MyTurnList,NewOthersTurnList,P)
+                checkRoomTurns(Rooms,MyTurnList,NewOthersTurnList,P,RoomsSetKey)
             end;
         true -> 
             io:format("no match?~n"),
-            checkRoomTurns(MyRoomsList,MyTurnList,OthersTurnList,P)
+            checkRoomTurns(MyRoomsList,MyTurnList,OthersTurnList,P,RoomsSetKey)
+    after
+        ?EXPIRE_CHECKROOM_IN_MSEC->        
+            %delete that room from redis!
+
+            {ok, C} = eredis:start_link(),
+            eredis:q(C, ["SREM", RoomsSetKey, RoomId]),
+            eredis:stop(C),
+
+            checkRoomTurns(Rooms,MyTurnList,OthersTurnList,P,RoomsSetKey)
     end.
 
 
@@ -1637,10 +1647,10 @@ out(Arg, ["list", "uid", Uid]) ->
     MyTurnList = [],
     OthersTurnList = [],
     io:format("list game rooms 1. ~n",[]),
-    {myturn,MyTurnList1,othersturn,OthersTurnList1} = checkRoomTurns(InitRooms,MyTurnList,OthersTurnList,Uid),
+    {myturn,MyTurnList1,othersturn,OthersTurnList1} = checkRoomTurns(InitRooms,MyTurnList,OthersTurnList,Uid,InitRoomsSetKey),
     io:format("list game rooms 2. ~w , ~w ~n",[MyTurnList1,OthersTurnList1]),
     %if joinroom list, p2 means your turn
-    {myturn,MyTurnList2,othersturn,OthersTurnList2} = checkRoomTurns(JoinRooms,MyTurnList1,OthersTurnList1,Uid),
+    {myturn,MyTurnList2,othersturn,OthersTurnList2} = checkRoomTurns(JoinRooms,MyTurnList1,OthersTurnList1,Uid,JoinRoomsSetKey),
     %io:format("list game rooms 3. ~w , ~w ~n",[MyTurnList2,OthersTurnList2]),
 
     io:format("list game rooms 3. ~n",[]),

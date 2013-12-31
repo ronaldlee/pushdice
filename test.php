@@ -55,6 +55,7 @@ echo "Fail to init game room, probably not enough money to pay for buyin.\n";
 exit -1;
 }
 
+echo "before init show room:\n";
 $comb_result = showRoom($p1,$p2);
 echo "after init:\n";
 echo "p1: " . json_encode($comb_result['p1']) ."\n";
