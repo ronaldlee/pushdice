@@ -385,7 +385,7 @@ init_gameroom(Player1_uid,Player2_uid,P1Bind,P1BuyIn,NewActualDice,SortedActualD
 
 wait_for_p1_makecall(?STATE) ->
     receive
-        {p1,fold,ExtPlayer1_uid} ->
+        {p1,fold,ExtPlayer1_uid,FromPid} ->
             %fold at very beginning, no one lose, p1 get back buyin
             if 
               (ExtPlayer1_uid /= Player1_uid) -> 
@@ -442,7 +442,7 @@ io:format("dice score ~w~n",[IsValid]),
 wait_for_p2_acceptgame(?STATE) ->
     io:format("wait for p2 acceptgame ~n",[]),
     receive
-        {p2,fold,ExtPlayer2_uid} ->
+        {p2,fold,ExtPlayer2_uid,FromPid} ->
             %fold at very beginning, no one lose, p1 get back buyin (p2 not yet deduct buyin since he hasn't accepted the game yet
             if 
               (ExtPlayer2_uid /= Player2_uid) -> 
@@ -495,7 +495,7 @@ wait_for_p2_findcall(?STATE) ->
     io:format("wait for p2 find call~n",[]),
     receive
         %p2 accepted game and deducted buyin, but decide to fold. that means p1 win
-        {p2,fold,ExtPlayer2_uid} ->
+        {p2,fold,ExtPlayer2_uid,FromPid} ->
             if 
               (ExtPlayer2_uid /= Player2_uid) -> 
                 wait_for_p2_findcall(?STATE);
@@ -533,7 +533,7 @@ wait_for_p1_findcall(?STATE) ->
     io:format("wait for p1 find call~n",[]),
     receive
         %p1 fold, p2 win
-        {p1,fold,ExtPlayer1_uid} ->
+        {p1,fold,ExtPlayer1_uid,FromPid} ->
             if 
               (ExtPlayer1_uid /= Player1_uid) -> 
                 wait_for_p1_findcall(?STATE);
@@ -579,7 +579,8 @@ wait_for_p2_trust_or_not(?STATE) ->
 io:format("wait for p2 trust or not, call: ~w; actual: ~w ~n",[SortedCallDice,SortedActualDice]),
     receive
         %p2 fold, p1 win
-        {p2,fold,ExtPlayer2_uid} ->
+        {p2,fold,ExtPlayer2_uid,FromPid} ->
+io:format("p2 fold"),
             if 
               (ExtPlayer2_uid /= Player2_uid) -> 
                 wait_for_p2_trust_or_not(?STATE);
@@ -673,6 +674,7 @@ io:format("trust P1 PrevRaise: ~w, P2Bet: ~w  ~n",[PrevRaise,Bet]),
                   end
             end;
         _ -> 
+            io:format("wait for p2 trust or not: unknown command!"),
             wait_for_p2_trust_or_not(?STATE)
     after
         ?EXPIRE_GAME_DURATION_IN_MSEC ->        
@@ -686,7 +688,7 @@ wait_for_p1_trust_or_not(?STATE) ->
 io:format("wait for p1 trust or not, call: ~w; actual: ~w ~n",[SortedCallDice,SortedActualDice]),
     receive
         %p1 fold, p2 win
-        {p1,fold,ExtPlayer1_uid} ->
+        {p1,fold,ExtPlayer1_uid,FromPid} ->
             if 
               (ExtPlayer1_uid /= Player1_uid) -> 
                 wait_for_p1_trust_or_not(?STATE);
@@ -823,7 +825,7 @@ wait_for_p2_pick_dice_to_roll(?STATE) ->
 io:format("wait_for_p2_pick_dice_to_roll ~n"),
     receive
         %p2 fold, p1 win
-        {p2,fold,ExtPlayer2_uid} ->
+        {p2,fold,ExtPlayer2_uid,FromPid} ->
             if 
               (ExtPlayer2_uid /= Player2_uid) -> 
                 wait_for_p2_pick_dice_to_roll(?STATE);
@@ -867,7 +869,7 @@ wait_for_p1_pick_dice_to_roll(?STATE) ->
 io:format("wait_for_p1_pick_dice_to_roll ~n"),
     receive
         %p1 fold, p2 win
-        {p1,fold,ExtPlayer1_uid} ->
+        {p1,fold,ExtPlayer1_uid,FromPid} ->
             if 
               (ExtPlayer1_uid /= Player1_uid) -> 
                 wait_for_p1_pick_dice_to_roll(?STATE);
@@ -911,7 +913,7 @@ wait_for_p2_call(?STATE) ->
     io:format("wait_for_p2_call~n"),
     receive
         %p2 fold, p1 win
-        {p2,fold,ExtPlayer2_uid} ->
+        {p2,fold,ExtPlayer2_uid,FromPid} ->
             if 
               (ExtPlayer2_uid /= Player2_uid) -> 
                 wait_for_p2_call(?STATE);
@@ -994,7 +996,7 @@ wait_for_p1_call(?STATE) ->
     io:format("wait_for_p1_call~n"),
     receive
         %p1 fold, p2 win
-        {p1,fold,ExtPlayer1_uid} ->
+        {p1,fold,ExtPlayer1_uid,FromPid} ->
             if 
               (ExtPlayer1_uid /= Player1_uid) -> 
                 wait_for_p1_call(?STATE);
@@ -1328,15 +1330,17 @@ out(Arg, [Pid, "check"]) ->
 out(Arg, [Pid, "fold", "p1_uid", Player1_uid]) -> 
     io:format("p1 fold. ~w~n",[Arg]),
 
-    player1_fold(Pid,Player1_uid),
+    player1_fold(list_to_pid(Pid),Player1_uid),
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
     {html, Output};
 
 out(Arg, [Pid, "fold", "p2_uid", Player2_uid]) -> 
     io:format("p2 fold. ~w~n",[Arg]),
 
-    player2_fold(Pid,Player2_uid),
+    player2_fold(list_to_pid(Pid),Player2_uid),
+    io:format("after fold"),
     Output = mochijson2:encode({struct, [ {status,ok} ]}),
+    io:format("fold return html"),
     {html, Output};
 
 out(Arg, ["init", "p1_uid", Player1_uid, "p2_uid", Player2_uid, "bind", P1Bind, "buyin", P1Buyin]) -> 
