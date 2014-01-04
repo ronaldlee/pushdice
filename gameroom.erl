@@ -1669,7 +1669,11 @@ out(Arg, ["list", "uid", Uid]) ->
             {"-1"}
     end,
 
-    Response = [ {properties, {struct, [{coins, Coins}]} }, {myturn, {struct,MyTurnList2} },{othersturn, {struct,OthersTurnList2} } ],
+    RandomPlayers = usermodel:getRandomPlayers(pushdice_pool,Uid,integer_to_list(3)),
+    io:format("RandomPlayers: ~w ~n",[RandomPlayers]),
+    RandomPlayersJsonResults = createUsersJson(RandomPlayers,[]),
+
+    Response = [ {properties, {struct, [{coins, Coins}]} }, {myturn, {struct,MyTurnList2} },{othersturn, {struct,OthersTurnList2} },{random_players, {struct,RandomPlayersJsonResults} } ],
     %Response = [ {myturn, {struct,MyTurnList2} },{othersturn, {struct,OthersTurnList2} } ],
 
     Output = mochijson2:encode({struct, Response}),
